@@ -528,10 +528,11 @@ async function cargarDatosHoy() {
     const proxima = pruebas[0];
     if (proxima) {
       const dias = Math.ceil((new Date(proxima.fecha) - new Date()) / (1000 * 60 * 60 * 24));
-      document.getElementById('alerta-prueba').innerHTML = '<div class="emoji">' + getEmojiAsignatura(proxima.asignatura) + '</div><h3>Próxima prueba: ' + proxima.asignatura + '</h3><p>' + formatearFecha(proxima.fecha) + ' (en ' + dias + ' días)<br>' + proxima.titulo + '</p><button class="btn-primary" onclick="showScreen('pruebas')">📖 EMPEZAR A REPASAR</button>';
+      document.getElementById('alerta-prueba').innerHTML = `<div class="emoji">${getEmojiAsignatura(proxima.asignatura)}</div><h3>Próxima prueba: ${proxima.asignatura}</h3><p>${formatearFecha(proxima.fecha)} (en ${dias} días)<br>${proxima.titulo}</p><button class="btn-primary" onclick="showScreen('pruebas')">📖 EMPEZAR A REPASAR</button>`;
     } else {
-      document.getElementById('alerta-prueba').innerHTML = '<div class="emoji">🎉</div><h3>¡No hay pruebas próximas!</h3><p>Es momento de adelantar y repasar con calma</p>';
+      document.getElementById('alerta-prueba').innerHTML = `<div class="emoji">🎉</div><h3>¡No hay pruebas próximas!</h3><p>Es momento de adelantar y repasar con calma</p>`;
     }
+
 
     const clases = await fetch(API + '/api/plan/hoy', { headers: authHeaders() }).then(r => r.json());
     document.getElementById('clases-hoy').innerHTML = clases.length ? clases.map(c => '<div class="clase-item" style="background: ' + getColorAsignatura(c.asignatura) + '20"><div class="clase-icon" style="background: ' + getColorAsignatura(c.asignatura) + '">' + getEmojiAsignatura(c.asignatura) + '</div><div class="clase-info"><h4>' + c.asignatura + '</h4><p>' + c.hora_inicio + ' - ' + c.hora_fin + '</p><span class="clase-tag tag-practice">' + c.actividad.substring(0, 50) + '...</span></div></div>').join('') : '<p style="text-align:center; color:#999; padding:20px">No hay clases registradas. Sube el plan semanal.</p>';
@@ -549,7 +550,7 @@ async function cargarDatosHoy() {
         }
       } else {
         if (t.completada && !t.aprobada) {
-          btnHtml = '<div class="btn-aprobacion"><button class="btn-aprobar" onclick="aprobarTareaPadre(' + t.id + ', '' + new Date().toISOString().split('T')[0] + '', 1)">✅ Aprobar</button><button class="btn-rechazar" onclick="aprobarTareaPadre(' + t.id + ', '' + new Date().toISOString().split('T')[0] + '', 0)">❌ Rechazar</button></div>';
+          btnHtml = `<div class="btn-aprobacion"><button class="btn-aprobar" onclick="aprobarTareaPadre(${t.id}, '${new Date().toISOString().split('T')[0]}', 1)">✅ Aprobar</button><button class="btn-rechazar" onclick="aprobarTareaPadre(${t.id}, '${new Date().toISOString().split('T')[0]}', 0)">❌ Rechazar</button></div>`;
         } else if (t.aprobada) {
           btnHtml = '<span style="color:#27ae60; font-size:0.8rem; font-weight:700">✅ Aprobada</span>';
         } else {
@@ -569,7 +570,8 @@ async function cargarDatosHoy() {
 }
 
 function cargarDatosOffline() {
-  document.getElementById('alerta-prueba').innerHTML = '<div class="emoji">🇩🇪</div><h3>Próxima prueba: Alemán</h3><p>Viernes 15 de mayo (en 7 días)<br>Klassenarbeit</p><button class="btn-primary" onclick="showScreen('pruebas')">📖 EMPEZAR A REPASAR</button>';
+  document.getElementById('alerta-prueba').innerHTML = `<div class="emoji">🇩🇪</div><h3>Próxima prueba: Alemán</h3><p>Viernes 15 de mayo (en 7 días)<br>Klassenarbeit</p><button class="btn-primary" onclick="showScreen('pruebas')">📖 EMPEZAR A REPASAR</button>`;
+
   document.getElementById('clases-hoy').innerHTML = '<div class="clase-item" style="background: #FFF8E7"><div class="clase-icon" style="background: var(--mate)">🔢</div><div class="clase-info"><h4>Matemática</h4><p>09:00 - 09:45</p><span class="clase-tag tag-practice">Fracciones</span></div></div><div class="clase-item" style="background: #E8F8E8"><div class="clase-icon" style="background: var(--cien)">🧪</div><div class="clase-info"><h4>Ciencias Naturales</h4><p>10:45 - 11:30</p><span class="clase-tag tag-exam">⚠️ Ensayo APTUS</span></div></div><div class="clase-item" style="background: #F3E8F8"><div class="clase-icon" style="background: var(--alem)">🇩🇪</div><div class="clase-info"><h4>Alemán</h4><p>12:30 - 13:15</p><span class="clase-tag tag-practice">Wiederholung</span></div></div>';
   document.getElementById('tareas-hogar').innerHTML = '<div class="tarea-item completada" id="tarea-1"><div class="tarea-icon">🛏️</div><div class="tarea-info"><h4 class="tarea-texto">Tender la cama</h4><p>Al levantarse</p></div><button class="tarea-btn tarea-btn-hecho" onclick="toggleTarea(1)">✅ Hecho</button></div><div class="tarea-item" id="tarea-2"><div class="tarea-icon">🧹</div><div class="tarea-info"><h4 class="tarea-texto">Limpiar cuarto (10 min)</h4><p>Después de la tarea</p></div><label class="tarea-btn tarea-btn-foto" style="cursor:pointer">📸 Subir foto<input type="file" accept="image/*" class="input-file-hidden" onchange="subirFoto(2, this)"></label></div>';
   actualizarEstrellitas([{asignatura:'matematica',total:4},{asignatura:'lenguaje',total:3},{asignatura:'ciencias',total:3},{asignatura:'aleman',total:2},{asignatura:'historia',total:2},{asignatura:'ingles',total:2},{asignatura:'religion',total:1},{asignatura:'arte',total:1},{asignatura:'hogar',total:5}]);
@@ -708,7 +710,8 @@ async function subirMaterial() {
 
 function showResumen(subject) {
   const r = resumenes[subject];
-  const html = '<div class="card"><div style="display:flex; align-items:center; margin-bottom:16px"><div class="clase-icon" style="background: ' + r.color + '; margin-right:12px">' + getEmojiAsignatura(subject) + '</div><div><h3 style="font-size:1.1rem">' + r.titulo + '</h3><p style="font-size:0.8rem; color:var(--text2)">' + r.subtitulo + '</p></div></div><div class="resumen-box" style="border-left-color:' + r.color + '; background:' + r.bg + '"><h4 style="color:' + r.color + '">📋 RESUMEN</h4><ul>' + r.puntos.map(p => '<li>' + p + '</li>').join('') + '</ul></div><button class="btn-primary" style="background:' + r.color + '; color:white; margin-top:8px" onclick="startQuiz('' + subject + '')">🎮 HACER QUIZ DE 5 PREGUNTAS</button></div>';
+  const html = `<div class="card"><div style="display:flex; align-items:center; margin-bottom:16px"><div class="clase-icon" style="background: ${r.color}; margin-right:12px">${getEmojiAsignatura(subject)}</div><div><h3 style="font-size:1.1rem">${r.titulo}</h3><p style="font-size:0.8rem; color:var(--text2)">${r.subtitulo}</p></div></div><div class="resumen-box" style="border-left-color:${r.color}; background:${r.bg}"><h4 style="color:${r.color}">📋 RESUMEN</h4><ul>${r.puntos.map(p => `<li>${p}</li>`).join('')}</ul></div><button class="btn-primary" style="background:${r.color}; color:white; margin-top:8px" onclick="startQuiz('${subject}')">🎮 HACER QUIZ DE 5 PREGUNTAS</button></div>`;
+
   document.querySelectorAll('[id^="resumen-"]').forEach(el => el.classList.add('hidden'));
   const container = document.getElementById('resumen-' + subject);
   container.innerHTML = html; container.classList.remove('hidden');
@@ -784,7 +787,8 @@ async function cargarPanelPadres() {
     const data = await fetch(API + '/api/padres/dashboard', { headers: authHeaders() }).then(r => r.json());
     document.getElementById('padres-stats').innerHTML = '<div class="stats-grid"><div class="stat-box"><div class="stat-number">' + (data.quizzes_semana || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Quizzes esta semana</div></div><div class="stat-box"><div class="stat-number">' + (data.tareas_semana || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Tareas completadas</div></div><div class="stat-box"><div class="stat-number">' + data.estrellitas.reduce((a, b) => a + (b.total || 0), 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Estrellitas totales</div></div><div class="stat-box"><div class="stat-number">' + (data.estrellitas.find(e => e.asignatura === 'hogar')?.total || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Del hogar</div></div></div>';
     const pendientes = data.evidencias.filter(e => !e.aprobada);
-    document.getElementById('padres-evidencias').innerHTML = pendientes.length ? pendientes.map(e => '<div class="padres-evidencia"><div style="width:60px; height:60px; background:#FFE4EC; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem">📸</div><div class="info"><div style="font-weight:700">Tarea #' + e.tarea_id + '</div><div style="font-size:0.75rem; color:var(--text2)">' + e.fecha + '</div></div><div class="btn-aprobacion"><button class="btn-aprobar" onclick="aprobarTareaPadre(' + e.tarea_id + ', '' + e.fecha + '', 1)">✅ Aprobar</button><button class="btn-rechazar" onclick="aprobarTareaPadre(' + e.tarea_id + ', '' + e.fecha + '', 0)">❌ Rechazar</button></div></div>').join('') : '<p style="color:#999; font-size:0.85rem">No hay evidencias pendientes 🎉</p>';
+    document.getElementById('padres-evidencias').innerHTML = pendientes.length ? pendientes.map(e => `<div class="padres-evidencia"><div style="width:60px; height:60px; background:#FFE4EC; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem">📸</div><div class="info"><div style="font-weight:700">Tarea #${e.tarea_id}</div><div style="font-size:0.75rem; color:var(--text2)">${e.fecha}</div></div><div class="btn-aprobacion"><button class="btn-aprobar" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 1)">✅ Aprobar</button><button class="btn-rechazar" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 0)">❌ Rechazar</button></div></div>`).join('') : '<p style="color:#999; font-size:0.85rem">No hay evidencias pendientes 🎉</p>';
+
     document.getElementById('padres-actividad').innerHTML = data.actividad.slice(0, 10).map(a => '<span>' + new Date(a.created_at).toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'}) + '</span> ' + (a.tipo === 'quiz' ? '🎮' : a.tipo === 'tarea' ? '🏠' : '📖') + ' ' + a.descripcion + '<br>').join('');
   } catch (e) {
     document.getElementById('padres-stats').innerHTML = '<p style="color:#999">Conecta al servidor para ver estadísticas.</p>';
