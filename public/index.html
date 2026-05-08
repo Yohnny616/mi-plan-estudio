@@ -942,9 +942,33 @@ async function subirCronograma() {
 
 
 function getEmojiAsignatura(a) {
-  const map = { matematica: '🔢', lengua: '📖', lenguaje: '📖', ciencias: '🧪', historia: '🏛️', ingles: '🇬🇧', alem: '🇩🇪', aleman: '🇩🇪', religion: '✝️', arte: '🎨', edfis: '🏃', tecnologia: '💻', hogar: '🏠' };
+  const map = { matematica: '🔢', lenguaje: '📖', lengua: '📖', ciencias: '🧪', historia: '🏛️', ingles: '🇬🇧', aleman: '🇩🇪', alem: '🇩🇪', religion: '✝️', arte: '🎨', edfis: '🏃', tecnologia: '💻', hogar: '🏠' };
   return map[a?.toLowerCase()] || '📚';
 }
+
+function getColorAsignatura(a) {
+  const map = { matematica: '#FFD93D', lenguaje: '#4D96FF', ciencias: '#6BCB77', historia: '#AA7C55', ingles: '#FF6B6B', aleman: '#9B59B6', religion: '#ECF0F1', arte: '#FF9F45', hogar: '#FF6B9D' };
+  return map[a?.toLowerCase()] || '#95A5A6';
+}
+
+function getSubjectName(s) {
+  const map = { matematica: 'Matemática', lenguaje: 'Lenguaje', ciencias: 'Ciencias', historia: 'Historia', aleman: 'Alemán', ingles: 'Inglés' };
+  return map[s?.toLowerCase()] || s;
+}
+
+function actualizarEstrellitas(data) {
+  const grid = document.getElementById('estrellitas-grid');
+  if (!grid) return;
+  grid.innerHTML = data.map(e => `<div class="logro-item"><div class="logro-emoji">${getEmojiAsignatura(e.asignatura)}</div><div class="logro-stars">★ ${e.total}</div><div class="logro-name">${e.asignatura}</div></div>`).join('');
+  const total = data.reduce((a, b) => a + b.total, 0);
+  document.getElementById('meta-texto').textContent = `🎯 Meta: ${total}/20 estrellitas = 🍕 Pizza`;
+}
+
+function actualizarLogros(data) {
+  const grid = document.getElementById('logros-grid');
+  if (grid) grid.innerHTML = data.map(e => `<div class="logro-item"><div class="logro-emoji">${getEmojiAsignatura(e.asignatura)}</div><div class="logro-stars">★ ${e.total}</div><div class="logro-name">${e.asignatura}</div></div>`).join('');
+}
+
 
 function getColorAsignatura(a) {
   const map = { matematica: '#FFD93D', lengua: '#4D96FF', lenguaje: '#4D96FF', ciencias: '#6BCB77', historia: '#AA7C55', ingles: '#FF6B6B', alem: '#9B59B6', aleman: '#9B59B6', religion: '#ECF0F1', arte: '#FF9F45', edfis: '#2C3E50', tecnologia: '#95A5A6', hogar: '#FF6B9D' };
