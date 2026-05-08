@@ -193,17 +193,34 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
 <button class="padres-toggle hidden" id="btnPanelPadres" onclick="togglePadresPanel()">👨‍👩‍👧 Panel Padres</button>
 
 <div class="padres-panel" id="padresPanel">
-  <h4>📊 Progreso en tiempo real</h4>
+  <h4>📊 Control Parental</h4>
+  
+  <div class="card" style="border: 1px solid #667eea; margin-bottom: 20px;">
+    <div class="card-title" style="color:#667eea">📅 SUBIR PLAN SEMANAL (PDF)</div>
+    <div style="font-size: 0.8rem; margin-bottom: 12px; color: #7f8c8d;">Sube el PDF del colegio para actualizar el horario automáticamente.</div>
+    <input type="date" id="semana_inicio" class="login-input" style="padding: 8px; margin-bottom: 8px;">
+    <input type="file" id="filePlan" accept=".pdf" style="margin-bottom: 10px; width:100%">
+    <button class="upload-btn" onclick="subirPlan()" style="width:100%">🚀 Procesar Horario</button>
+  </div>
+
+  <div class="card" style="border: 1px solid #FF6B6B; margin-bottom: 20px;">
+    <div class="card-title" style="color:#FF6B6B">📝 AGREGAR NUEVA EVALUACIÓN</div>
+    <select id="ev-asignatura" class="login-input" style="padding: 8px; margin-bottom: 8px;">
+      <option value="Matemática">🔢 Matemática</option>
+      <option value="Lenguaje">📖 Lenguaje</option>
+      <option value="Ciencias Naturales">🧪 Ciencias</option>
+      <option value="Historia">🏛️ Historia</option>
+      <option value="Alemán">🇩🇪 Alemán</option>
+      <option value="Inglés">🇬🇧 Inglés</option>
+    </select>
+    <input type="date" id="ev-fecha" class="login-input" style="padding: 8px; margin-bottom: 8px;">
+    <input type="text" id="ev-titulo" placeholder="Título (ej: Prueba Unidad 2)" class="login-input" style="padding: 8px; margin-bottom: 8px;">
+    <button class="upload-btn" onclick="agregarEvaluacion()" style="background:#FF6B6B; width:100%">📅 Guardar Fecha</button>
+  </div>
+
+  <h4>📊 Resumen de la Semana</h4>
   <div id="padres-stats"></div>
-  <div style="margin-top:16px; padding-top:16px; border-top:2px solid #ddd">
-    <h4>🏠 Evidencias pendientes de revisión</h4>
-    <div id="padres-evidencias"></div>
-  </div>
-  <div style="margin-top:16px; padding-top:16px; border-top:2px solid #ddd">
-    <h4>📝 Actividad reciente</h4>
-    <div id="padres-actividad" class="activity-log"></div>
-  </div>
-</div>
+
 
 <div class="screen active" id="screen-hoy">
   <div class="alert-exam" id="alerta-prueba">
@@ -785,17 +802,58 @@ async function cargarPanelPadres() {
   if (currentUser.rol !== 'padre') return;
   try {
     const data = await fetch(API + '/api/padres/dashboard', { headers: authHeaders() }).then(r => r.json());
-    document.getElementById('padres-stats').innerHTML = '<div class="stats-grid"><div class="stat-box"><div class="stat-number">' + (data.quizzes_semana || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Quizzes esta semana</div></div><div class="stat-box"><div class="stat-number">' + (data.tareas_semana || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Tareas completadas</div></div><div class="stat-box"><div class="stat-number">' + data.estrellitas.reduce((a, b) => a + (b.total || 0), 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Estrellitas totales</div></div><div class="stat-box"><div class="stat-number">' + (data.estrellitas.find(e => e.asignatura === 'hogar')?.total || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Del hogar</div></div></div>';
+    document.getElementById('padres-stats').innerHTML = '<div class="stats-grid"><div class="stat-box"><div class="stat-number">' + (data.quizzes_semana || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Quizzes esta semana</div></div><div class="stat-box"><div class="stat-number">' + (data.tareas_semana || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Tareas completadas</div></div><div class="stat-box"><div class="stat-number">' + data.estrellitas.reduce((a, b) => a + (b.total || 0), 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Estrellitas totales</div></div><div class="stat-box"><div class="stat-number">' + (data.estrellitas.find(e => e.asignatura === 'hogar')?.total || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Del hogar</div></div></div><div style="margin-top:16px; padding-top:16px; border-top:2px solid #ddd"><h4>🏠 Evidencias pendientes</h4><div id="padres-evidencias"></div></div><div style="margin-top:16px; padding-top:16px; border-top:2px solid #ddd"><h4>📝 Actividad reciente</h4><div id="padres-actividad" class="activity-log"></div></div>';
+    
     const pendientes = data.evidencias.filter(e => !e.aprobada);
     document.getElementById('padres-evidencias').innerHTML = pendientes.length ? pendientes.map(e => `<div class="padres-evidencia"><div style="width:60px; height:60px; background:#FFE4EC; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem">📸</div><div class="info"><div style="font-weight:700">Tarea #${e.tarea_id}</div><div style="font-size:0.75rem; color:var(--text2)">${e.fecha}</div></div><div class="btn-aprobacion"><button class="btn-aprobar" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 1)">✅ Aprobar</button><button class="btn-rechazar" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 0)">❌ Rechazar</button></div></div>`).join('') : '<p style="color:#999; font-size:0.85rem">No hay evidencias pendientes 🎉</p>';
-
     document.getElementById('padres-actividad').innerHTML = data.actividad.slice(0, 10).map(a => '<span>' + new Date(a.created_at).toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'}) + '</span> ' + (a.tipo === 'quiz' ? '🎮' : a.tipo === 'tarea' ? '🏠' : '📖') + ' ' + a.descripcion + '<br>').join('');
   } catch (e) {
-    document.getElementById('padres-stats').innerHTML = '<p style="color:#999">Conecta al servidor para ver estadísticas.</p>';
-    document.getElementById('padres-evidencias').innerHTML = '<p style="color:#999; font-size:0.85rem">Modo offline.</p>';
-    document.getElementById('padres-actividad').innerHTML = '<span>Hoy 8:15</span> 🏠 Tarea: Tender la cama ✅<br><span>Hoy 7:50</span> 🎮 Quiz Ciencias: 4/5<br>';
+    document.getElementById('padres-stats').innerHTML = '<p style="color:#999">Error al cargar estadísticas.</p>';
   }
 }
+
+async function subirPlan() {
+  const file = document.getElementById('filePlan').files[0];
+  const inicio = document.getElementById('semana_inicio').value;
+  if (!file || !inicio) return alert('Selecciona archivo y fecha de inicio');
+  
+  const formData = new FormData();
+  formData.append('plan', file);
+  formData.append('semana_inicio', inicio);
+
+  try {
+    const res = await fetch(API + '/api/plan/subir', { method: 'POST', headers: authHeaders(), body: formData }).then(r => r.json());
+    if (res.success) {
+      alert('✅ Plan cargado: ' + res.items + ' clases detectadas');
+      cargarDatosHoy();
+    } else {
+      alert('Error: ' + res.error);
+    }
+  } catch (e) { alert('Error al subir plan'); }
+}
+
+async function agregarEvaluacion() {
+  const data = {
+    asignatura: document.getElementById('ev-asignatura').value,
+    fecha: document.getElementById('ev-fecha').value,
+    titulo: document.getElementById('ev-titulo').value,
+    tipo: 'Prueba',
+    descripcion: ''
+  };
+  if (!data.fecha || !data.titulo) return alert('Completa todos los campos');
+
+  try {
+    const res = await fetch(API + '/api/evaluaciones', {
+      method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(r => r.json());
+    if (res.success) {
+      alert('✅ Evaluación guardada');
+      cargarDatosHoy();
+    }
+  } catch (e) { alert('Error al guardar evaluación'); }
+}
+
 
 function getEmojiAsignatura(a) {
   const map = { matematica: '🔢', lengua: '📖', lenguaje: '📖', ciencias: '🧪', historia: '🏛️', ingles: '🇬🇧', alem: '🇩🇪', aleman: '🇩🇪', religion: '✝️', arte: '🎨', edfis: '🏃', tecnologia: '💻', hogar: '🏠' };
