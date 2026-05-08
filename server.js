@@ -1,5 +1,6 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
+
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -13,156 +14,156 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'mi-plan-estudio-secret-key-2026';
-
-// Render usa /tmp para archivos temporales que sobreviven reinicios cortos
-// Pero para SQLite en Free tier, usamos el directorio actual (persiste durante la vida del contenedor)
-const DATA_DIR = process.env.RENDER ? './data' : '.';
 const UPLOADS_DIR = process.env.RENDER ? './uploads' : 'uploads';
+const DATABASE_URL = process.env.DATABASE_URL;
+
+const pool = new Pool({
+    connectionString: DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // Crear directorios necesarios
-[DATA_DIR, UPLOADS_DIR, `${UPLOADS_DIR}/planes`, `${UPLOADS_DIR}/materiales`, `${UPLOADS_DIR}/evidencias`, `${UPLOADS_DIR}/temp`].forEach(dir => {
+[UPLOADS_DIR, `${UPLOADS_DIR}/planes`, `${UPLOADS_DIR}/materiales`, `${UPLOADS_DIR}/evidencias`, `${UPLOADS_DIR}/temp`].forEach(dir => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// BASE DE DATOS - SQLite en archivo local (persiste en Render mientras no redeployes)
-const DB_PATH = path.join(DATA_DIR, 'database.sqlite');
-const db = new sqlite3.Database(DB_PATH);
+// BASE DE DATOS - INICIALIZACIÓN
+async function initDB() {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            nombre TEXT NOT NULL,
+            email TEXT UNIQUE,
+            password_hash TEXT NOT NULL,
+            rol TEXT NOT NULL CHECK(rol IN ('hijo', 'padre')),
+            activo INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
 
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS usuarios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        email TEXT UNIQUE,
-        password_hash TEXT NOT NULL,
-        rol TEXT NOT NULL CHECK(rol IN ('hijo', 'padre')),
-        activo INTEGER DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS plan_semanal (
+            id SERIAL PRIMARY KEY,
+            semana_inicio DATE,
+            semana_fin DATE,
+            dia TEXT,
+            hora_inicio TEXT,
+            hora_fin TEXT,
+            asignatura TEXT,
+            actividad TEXT,
+            material TEXT,
+            evaluacion TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS plan_semanal (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        semana_inicio DATE,
-        semana_fin DATE,
-        dia TEXT,
-        hora_inicio TEXT,
-        hora_fin TEXT,
-        asignatura TEXT,
-        actividad TEXT,
-        material TEXT,
-        evaluacion TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS evaluaciones (
+            id SERIAL PRIMARY KEY,
+            fecha DATE,
+            asignatura TEXT,
+            tipo TEXT,
+            titulo TEXT,
+            descripcion TEXT,
+            estado TEXT DEFAULT 'pendiente',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS evaluaciones (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fecha DATE,
-        asignatura TEXT,
-        tipo TEXT,
-        titulo TEXT,
-        descripcion TEXT,
-        estado TEXT DEFAULT 'pendiente',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS materiales (
+            id SERIAL PRIMARY KEY,
+            asignatura TEXT,
+            titulo TEXT,
+            archivo_path TEXT,
+            contenido_extraido TEXT,
+            resumen TEXT,
+            tipo TEXT,
+            subido_por INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (subido_por) REFERENCES usuarios(id)
+        )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS materiales (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        asignatura TEXT,
-        titulo TEXT,
-        archivo_path TEXT,
-        contenido_extraido TEXT,
-        resumen TEXT,
-        tipo TEXT,
-        subido_por INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (subido_por) REFERENCES usuarios(id)
-    )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS tareas_hogar (
+            id SERIAL PRIMARY KEY,
+            titulo TEXT,
+            emoji TEXT,
+            horario TEXT,
+            requiere_foto INTEGER DEFAULT 0,
+            dia_semana TEXT,
+            orden INTEGER,
+            activa INTEGER DEFAULT 1
+        )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS tareas_hogar (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        titulo TEXT,
-        emoji TEXT,
-        horario TEXT,
-        requiere_foto INTEGER DEFAULT 0,
-        dia_semana TEXT,
-        orden INTEGER,
-        activa INTEGER DEFAULT 1
-    )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS tareas_completadas (
+            id SERIAL PRIMARY KEY,
+            tarea_id INTEGER,
+            hijo_id INTEGER,
+            fecha DATE,
+            completada INTEGER DEFAULT 0,
+            foto_path TEXT,
+            aprobada_padre INTEGER DEFAULT 0,
+            comentario_padre TEXT,
+            revisado_por INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (tarea_id) REFERENCES tareas_hogar(id),
+            FOREIGN KEY (hijo_id) REFERENCES usuarios(id),
+            FOREIGN KEY (revisado_por) REFERENCES usuarios(id)
+        )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS tareas_completadas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tarea_id INTEGER,
-        hijo_id INTEGER,
-        fecha DATE,
-        completada INTEGER DEFAULT 0,
-        foto_path TEXT,
-        aprobada_padre INTEGER DEFAULT 0,
-        comentario_padre TEXT,
-        revisado_por INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (tarea_id) REFERENCES tareas_hogar(id),
-        FOREIGN KEY (hijo_id) REFERENCES usuarios(id),
-        FOREIGN KEY (revisado_por) REFERENCES usuarios(id)
-    )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS estrellitas (
+            id SERIAL PRIMARY KEY,
+            hijo_id INTEGER,
+            asignatura TEXT,
+            cantidad INTEGER DEFAULT 0,
+            fecha DATE,
+            motivo TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (hijo_id) REFERENCES usuarios(id)
+        )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS estrellitas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hijo_id INTEGER,
-        asignatura TEXT,
-        cantidad INTEGER DEFAULT 0,
-        fecha DATE,
-        motivo TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (hijo_id) REFERENCES usuarios(id)
-    )`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS actividad_log (
+            id SERIAL PRIMARY KEY,
+            hijo_id INTEGER,
+            tipo TEXT,
+            descripcion TEXT,
+            asignatura TEXT,
+            duracion_minutos INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (hijo_id) REFERENCES usuarios(id)
+        )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS actividad_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hijo_id INTEGER,
-        tipo TEXT,
-        descripcion TEXT,
-        asignatura TEXT,
-        duracion_minutos INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (hijo_id) REFERENCES usuarios(id)
-    )`);
-
-    // Insertar usuarios por defecto si no existen
-    db.get("SELECT COUNT(*) as count FROM usuarios", (err, row) => {
-        if (row.count === 0) {
+        // Usuarios por defecto
+        const userCount = await pool.query("SELECT COUNT(*) FROM usuarios");
+        if (parseInt(userCount.rows[0].count) === 0) {
             const hashPadre = bcrypt.hashSync('padre2026', 10);
             const hashHijo = bcrypt.hashSync('hija2026', 10);
-
-            db.run(`INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (?, ?, ?, ?)`,
+            await pool.query(`INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4)`,
                 ['Papá/Mamá', 'padres@familia.cl', hashPadre, 'padre']);
-            db.run(`INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (?, ?, ?, ?)`,
+            await pool.query(`INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4)`,
                 ['Hija', 'hija@familia.cl', hashHijo, 'hijo']);
         }
-    });
 
-    // Tareas por defecto
-    const tareasDefault = [
-        ['Tender la cama', '🛏️', 'Al levantarse', 0, 'todos', 1],
-        ['Limpiar cuarto (10 min)', '🧹', 'Después de la tarea', 1, 'todos', 2],
-        ['Ordenar mi lugar en la mesa', '🍽️', 'Después de almorzar', 1, 'todos', 3],
-        ['Preparar mochila para mañana', '🎒', 'Antes de dormir', 1, 'todos', 4],
-        ['Lavar dientes y pijama en su lugar', '🪥', 'Antes de dormir', 0, 'todos', 5],
-        ['Sacar la basura', '🗑️', 'Después de almuerzo', 1, 'martes', 6],
-        ['Regar las plantas', '🌱', 'Después de la escuela', 1, 'miercoles', 7],
-        ['Ordenar zapatos en la entrada', '👟', 'Al llegar del colegio', 0, 'todos', 8]
-    ];
-
-    db.get("SELECT COUNT(*) as count FROM tareas_hogar", (err, row) => {
-        if (row.count === 0) {
-            const stmt = db.prepare(`INSERT INTO tareas_hogar (titulo, emoji, horario, requiere_foto, dia_semana, orden) VALUES (?, ?, ?, ?, ?, ?)`);
-            tareasDefault.forEach(t => stmt.run(t));
-            stmt.finalize();
+        // Tareas por defecto
+        const taskCount = await pool.query("SELECT COUNT(*) FROM tareas_hogar");
+        if (parseInt(taskCount.rows[0].count) === 0) {
+            const tareasDefault = [
+                ['Tender la cama', '🛏️', 'Al levantarse', 0, 'todos', 1],
+                ['Limpiar cuarto (10 min)', '🧹', 'Después de la tarea', 1, 'todos', 2],
+                ['Ordenar mi lugar en la mesa', '🍽️', 'Después de almorzar', 1, 'todos', 3],
+                ['Preparar mochila para mañana', '🎒', 'Antes de dormir', 1, 'todos', 4],
+                ['Lavar dientes y pijama en su lugar', '🪥', 'Antes de dormir', 0, 'todos', 5],
+                ['Sacar la basura', '🗑️', 'Después de almuerzo', 1, 'martes', 6],
+                ['Regar las plantas', '🌱', 'Después de la escuela', 1, 'miercoles', 7],
+                ['Ordenar zapatos en la entrada', '👟', 'Al llegar del colegio', 0, 'todos', 8]
+            ];
+            for (let t of tareasDefault) {
+                await pool.query(`INSERT INTO tareas_hogar (titulo, emoji, horario, requiere_foto, dia_semana, orden) VALUES ($1, $2, $3, $4, $5, $6)`, t);
+            }
         }
-    });
-});
+    } catch (err) {
+        console.error("Error inicializando DB:", err);
+    }
+}
+initDB();
 
 // MULTER - Usar directorio de uploads configurable
 const storage = multer.diskStorage({
@@ -206,10 +207,11 @@ function requireHijo(req, res, next) {
 }
 
 // ===== AUTH ROUTES =====
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
-    db.get(`SELECT * FROM usuarios WHERE email = ? AND activo = 1`, [email], (err, user) => {
-        if (err) return res.status(500).json({ error: err.message });
+    try {
+        const result = await pool.query(`SELECT * FROM usuarios WHERE email = $1 AND activo = 1`, [email]);
+        const user = result.rows[0];
         if (!user) return res.status(401).json({ error: 'Usuario no encontrado' });
 
         const valid = bcrypt.compareSync(password, user.password_hash);
@@ -225,24 +227,27 @@ app.post('/api/auth/login', (req, res) => {
             token,
             user: { id: user.id, nombre: user.nombre, rol: user.rol, email: user.email }
         });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/auth/registro', authMiddleware, requirePadre, (req, res) => {
+app.post('/api/auth/registro', authMiddleware, requirePadre, async (req, res) => {
     const { nombre, email, password, rol } = req.body;
     if (!['hijo', 'padre'].includes(rol)) {
         return res.status(400).json({ error: 'Rol debe ser hijo o padre' });
     }
 
     const hash = bcrypt.hashSync(password, 10);
-    db.run(`INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES (?, ?, ?, ?)`,
-        [nombre, email, hash, rol],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ id: this.lastID, success: true });
-        }
-    );
+    try {
+        const result = await pool.query(`INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4) RETURNING id`,
+            [nombre, email, hash, rol]);
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
+
 
 app.get('/api/auth/me', authMiddleware, (req, res) => {
     res.json(req.user);
@@ -292,11 +297,10 @@ app.post('/api/plan/subir', authMiddleware, requirePadre, upload.single('plan'),
             }
         });
 
-        const stmt = db.prepare(`INSERT INTO plan_semanal (semana_inicio, semana_fin, dia, hora_inicio, hora_fin, asignatura, actividad) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-        planItems.forEach(item => {
-            stmt.run(req.body.semana_inicio, req.body.semana_fin, item.dia, item.hora_inicio, item.hora_fin, item.asignatura, item.actividad);
-        });
-        stmt.finalize();
+        for (let item of planItems) {
+            await pool.query(`INSERT INTO plan_semanal (semana_inicio, semana_fin, dia, hora_inicio, hora_fin, asignatura, actividad) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [req.body.semana_inicio, req.body.semana_fin, item.dia, item.hora_inicio, item.hora_fin, item.asignatura, item.actividad]);
+        }
 
         res.json({ success: true, items: planItems.length });
     } catch (err) {
@@ -304,33 +308,39 @@ app.post('/api/plan/subir', authMiddleware, requirePadre, upload.single('plan'),
     }
 });
 
-app.get('/api/plan/hoy', authMiddleware, (req, res) => {
+app.get('/api/plan/hoy', authMiddleware, async (req, res) => {
     const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
     const hoy = dias[new Date().getDay()].toUpperCase();
-    db.all(`SELECT * FROM plan_semanal WHERE dia = ? ORDER BY hora_inicio`, [hoy], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+    try {
+        const result = await pool.query(`SELECT * FROM plan_semanal WHERE dia = $1 ORDER BY hora_inicio`, [hoy]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
+
 
 // ===== API ROUTES - EVALUACIONES =====
-app.get('/api/evaluaciones', authMiddleware, (req, res) => {
-    db.all(`SELECT * FROM evaluaciones WHERE fecha >= date('now') ORDER BY fecha`, (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+app.get('/api/evaluaciones', authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT * FROM evaluaciones WHERE fecha >= CURRENT_DATE ORDER BY fecha`);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/evaluaciones', authMiddleware, requirePadre, (req, res) => {
+app.post('/api/evaluaciones', authMiddleware, requirePadre, async (req, res) => {
     const { fecha, asignatura, tipo, titulo, descripcion } = req.body;
-    db.run(`INSERT INTO evaluaciones (fecha, asignatura, tipo, titulo, descripcion) VALUES (?, ?, ?, ?, ?)`,
-        [fecha, asignatura, tipo, titulo, descripcion],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ id: this.lastID, success: true });
-        }
-    );
+    try {
+        const result = await pool.query(`INSERT INTO evaluaciones (fecha, asignatura, tipo, titulo, descripcion) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+            [fecha, asignatura, tipo, titulo, descripcion]);
+        res.json({ id: result.rows[0].id, success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
+
 
 // ===== API ROUTES - MATERIALES (SOLO PADRES) =====
 app.post('/api/materiales/subir', authMiddleware, requirePadre, upload.single('material'), async (req, res) => {
@@ -343,146 +353,165 @@ app.post('/api/materiales/subir', authMiddleware, requirePadre, upload.single('m
 
         const resumen = generarResumenIA(texto, req.body.asignatura);
 
-        db.run(`INSERT INTO materiales (asignatura, titulo, archivo_path, contenido_extraido, resumen, tipo, subido_por) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [req.body.asignatura, req.body.titulo, filePath, texto.substring(0, 5000), resumen.resumen, ext.replace('.', ''), req.user.id],
-            function(err) {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ id: this.lastID, resumen: resumen, success: true });
-            }
-        );
+        const result = await pool.query(`INSERT INTO materiales (asignatura, titulo, archivo_path, contenido_extraido, resumen, tipo, subido_por) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            [req.body.asignatura, req.body.titulo, filePath, texto.substring(0, 5000), resumen.resumen, ext.replace('.', ''), req.user.id]);
+        res.json({ id: result.rows[0].id, resumen: resumen, success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-app.get('/api/materiales/:asignatura', authMiddleware, (req, res) => {
-    db.all(`SELECT id, asignatura, titulo, resumen, created_at FROM materiales WHERE asignatura = ?`, [req.params.asignatura], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+app.get('/api/materiales/:asignatura', authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT id, asignatura, titulo, resumen, created_at FROM materiales WHERE asignatura = $1`, [req.params.asignatura]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
+
 // ===== API ROUTES - TAREAS DEL HOGAR =====
-app.get('/api/tareas/hoy', authMiddleware, (req, res) => {
+app.get('/api/tareas/hoy', authMiddleware, async (req, res) => {
     const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
     const diaSemana = dias[new Date().getDay()];
     const hijoId = req.user.rol === 'hijo' ? req.user.id : req.query.hijo_id || 1;
 
-    db.all(`SELECT * FROM tareas_hogar WHERE (dia_semana = ? OR dia_semana = 'todos') AND activa = 1 ORDER BY orden`, 
-        [diaSemana], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+    try {
+        const tasksResult = await pool.query(`SELECT * FROM tareas_hogar WHERE (dia_semana = $1 OR dia_semana = 'todos') AND activa = 1 ORDER BY orden`, [diaSemana]);
         const hoy = new Date().toISOString().split('T')[0];
-        db.all(`SELECT * FROM tareas_completadas WHERE fecha = ? AND hijo_id = ?`, [hoy, hijoId], (err2, completadas) => {
-            if (err2) return res.status(500).json({ error: err2.message });
-            const tareasConEstado = rows.map(t => {
-                const comp = completadas.find(c => c.tarea_id === t.id);
-                return { ...t, completada: comp ? comp.completada : 0, foto_path: comp ? comp.foto_path : null, aprobada: comp ? comp.aprobada_padre : 0 };
-            });
-            res.json(tareasConEstado);
+        const completadasResult = await pool.query(`SELECT * FROM tareas_completadas WHERE fecha = $1 AND hijo_id = $2`, [hoy, hijoId]);
+        
+        const tasks = tasksResult.rows;
+        const completadas = completadasResult.rows;
+
+        const tareasConEstado = tasks.map(t => {
+            const comp = completadas.find(c => c.tarea_id === t.id);
+            return { ...t, completada: comp ? comp.completada : 0, foto_path: comp ? comp.foto_path : null, aprobada: comp ? comp.aprobada_padre : 0 };
         });
-    });
+        res.json(tareasConEstado);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/tareas/completar', authMiddleware, requireHijo, upload.single('foto'), (req, res) => {
+
+app.post('/api/tareas/completar', authMiddleware, requireHijo, upload.single('foto'), async (req, res) => {
     const { tarea_id, completada } = req.body;
     const hijoId = req.user.id;
     const hoy = new Date().toISOString().split('T')[0];
     const fotoPath = req.file ? req.file.path : null;
 
-    db.run(`INSERT OR REPLACE INTO tareas_completadas (tarea_id, hijo_id, fecha, completada, foto_path) VALUES (?, ?, ?, ?, ?)`,
-        [tarea_id, hijoId, hoy, completada, fotoPath],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            if (completada == 1) {
-                db.run(`INSERT INTO estrellitas (hijo_id, asignatura, cantidad, fecha, motivo) VALUES (?, ?, 1, ?, ?)`,
-                    [hijoId, 'hogar', hoy, 'Tarea completada: ' + tarea_id]);
-            }
-            res.json({ success: true, estrellita: completada == 1 });
+    try {
+        await pool.query(`INSERT INTO tareas_completadas (tarea_id, hijo_id, fecha, completada, foto_path) 
+                         VALUES ($1, $2, $3, $4, $5) 
+                         ON CONFLICT (tarea_id, hijo_id, fecha) DO UPDATE SET completada = EXCLUDED.completada, foto_path = EXCLUDED.foto_path`,
+            [tarea_id, hijoId, hoy, completada, fotoPath]);
+        
+        if (completada == 1) {
+            await pool.query(`INSERT INTO estrellitas (hijo_id, asignatura, cantidad, fecha, motivo) VALUES ($1, $2, 1, $3, $4)`,
+                [hijoId, 'hogar', hoy, 'Tarea completada: ' + tarea_id]);
         }
-    );
+        res.json({ success: true, estrellita: completada == 1 });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/tareas/aprobar', authMiddleware, requirePadre, (req, res) => {
+app.post('/api/tareas/aprobar', authMiddleware, requirePadre, async (req, res) => {
     const { tarea_id, fecha, aprobada, comentario, hijo_id } = req.body;
-    db.run(`UPDATE tareas_completadas SET aprobada_padre = ?, comentario_padre = ?, revisado_por = ? WHERE tarea_id = ? AND fecha = ? AND hijo_id = ?`,
-        [aprobada, comentario, req.user.id, tarea_id, fecha, hijo_id || 1],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true });
-        }
-    );
+    try {
+        await pool.query(`UPDATE tareas_completadas SET aprobada_padre = $1, comentario_padre = $2, revisado_por = $3 WHERE tarea_id = $4 AND fecha = $5 AND hijo_id = $6`,
+            [aprobada, comentario, req.user.id, tarea_id, fecha, hijo_id || 1]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // ===== API ROUTES - QUIZZES =====
-app.post('/api/quiz/resultado', authMiddleware, requireHijo, (req, res) => {
+app.post('/api/quiz/resultado', authMiddleware, requireHijo, async (req, res) => {
     const { asignatura, correctas, total } = req.body;
     const hijoId = req.user.id;
     const hoy = new Date().toISOString().split('T')[0];
     const estrellas = correctas >= 4 ? 2 : correctas >= 2 ? 1 : 0;
-    if (estrellas > 0) {
-        db.run(`INSERT INTO estrellitas (hijo_id, asignatura, cantidad, fecha, motivo) VALUES (?, ?, ?, ?, ?)`,
-            [hijoId, asignatura, estrellas, hoy, `Quiz ${correctas}/${total}`]);
+    try {
+        if (estrellas > 0) {
+            await pool.query(`INSERT INTO estrellitas (hijo_id, asignatura, cantidad, fecha, motivo) VALUES ($1, $2, $3, $4, $5)`,
+                [hijoId, asignatura, estrellas, hoy, `Quiz ${correctas}/${total}`]);
+        }
+        res.json({ estrellitas: estrellas, success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    res.json({ estrellitas: estrellas, success: true });
 });
 
-app.get('/api/estrellitas', authMiddleware, (req, res) => {
+
+app.get('/api/estrellitas', authMiddleware, async (req, res) => {
     const hijoId = req.user.rol === 'hijo' ? req.user.id : req.query.hijo_id || 1;
-    db.all(`SELECT asignatura, SUM(cantidad) as total FROM estrellitas WHERE hijo_id = ? GROUP BY asignatura`, [hijoId], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+    try {
+        const result = await pool.query(`SELECT asignatura, SUM(cantidad) as total FROM estrellitas WHERE hijo_id = $1 GROUP BY asignatura`, [hijoId]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/actividad', authMiddleware, (req, res) => {
+app.post('/api/actividad', authMiddleware, async (req, res) => {
     const { tipo, descripcion, asignatura, duracion } = req.body;
     const hijoId = req.user.rol === 'hijo' ? req.user.id : req.query.hijo_id || 1;
-    db.run(`INSERT INTO actividad_log (hijo_id, tipo, descripcion, asignatura, duracion_minutos) VALUES (?, ?, ?, ?, ?)`,
-        [hijoId, tipo, descripcion, asignatura, duracion],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true });
-        }
-    );
+    try {
+        await pool.query(`INSERT INTO actividad_log (hijo_id, tipo, descripcion, asignatura, duracion_minutos) VALUES ($1, $2, $3, $4, $5)`,
+            [hijoId, tipo, descripcion, asignatura, duracion]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
+
 // ===== PANEL PADRES =====
-app.get('/api/padres/dashboard', authMiddleware, requirePadre, (req, res) => {
+app.get('/api/padres/dashboard', authMiddleware, requirePadre, async (req, res) => {
     const hijoId = req.query.hijo_id || 1;
-    const hoy = new Date().toISOString().split('T')[0];
     const hace7dias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-    db.all(`
-        SELECT 
-            (SELECT json_group_array(json_object('asignatura', asignatura, 'total', total)) 
-             FROM (SELECT asignatura, SUM(cantidad) as total FROM estrellitas WHERE hijo_id = ? GROUP BY asignatura)) as estrellitas,
-            (SELECT json_group_array(json_object('fecha', fecha, 'tipo', tipo, 'descripcion', descripcion, 'asignatura', asignatura))
-             FROM actividad_log WHERE hijo_id = ? AND created_at >= datetime('now', '-7 days') ORDER BY created_at DESC) as actividad,
-            (SELECT json_group_array(json_object('tarea_id', tarea_id, 'fecha', fecha, 'foto_path', foto_path, 'aprobada', aprobada_padre, 'hijo_id', hijo_id))
-             FROM tareas_completadas WHERE hijo_id = ? AND fecha >= ? ORDER BY fecha DESC) as evidencias,
-            (SELECT COUNT(*) FROM actividad_log WHERE hijo_id = ? AND tipo = 'quiz' AND created_at >= ?) as quizzes_semana,
-            (SELECT COUNT(*) FROM tareas_completadas WHERE hijo_id = ? AND fecha >= ? AND completada = 1) as tareas_semana
-    `, [hijoId, hijoId, hijoId, hace7dias, hijoId, hace7dias, hijoId, hace7dias], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        const data = rows[0];
+    try {
+        const result = await pool.query(`
+            SELECT 
+                (SELECT json_agg(json_build_object('asignatura', asignatura, 'total', total)) 
+                 FROM (SELECT asignatura, SUM(cantidad) as total FROM estrellitas WHERE hijo_id = $1 GROUP BY asignatura) t) as estrellitas,
+                (SELECT json_agg(json_build_object('fecha', created_at, 'tipo', tipo, 'descripcion', descripcion, 'asignatura', asignatura))
+                 FROM actividad_log WHERE hijo_id = $1 AND created_at >= (CURRENT_TIMESTAMP - INTERVAL '7 days') ORDER BY created_at DESC) as actividad,
+                (SELECT json_agg(json_build_object('tarea_id', tarea_id, 'fecha', fecha, 'foto_path', foto_path, 'aprobada', aprobada_padre, 'hijo_id', hijo_id))
+                 FROM tareas_completadas WHERE hijo_id = $1 AND fecha >= $2::date ORDER BY fecha DESC) as evidencias,
+                (SELECT COUNT(*) FROM actividad_log WHERE hijo_id = $1 AND tipo = 'quiz' AND created_at >= (CURRENT_TIMESTAMP - INTERVAL '7 days')) as quizzes_semana,
+                (SELECT COUNT(*) FROM tareas_completadas WHERE hijo_id = $1 AND fecha >= $2::date AND completada = 1) as tareas_semana
+        `, [hijoId, hace7dias]);
+        
+        const data = result.rows[0];
         res.json({
-            estrellitas: JSON.parse(data.estrellitas || '[]'),
-            actividad: JSON.parse(data.actividad || '[]'),
-            evidencias: JSON.parse(data.evidencias || '[]'),
-            quizzes_semana: data.quizzes_semana,
-            tareas_semana: data.tareas_semana
+            estrellitas: data.estrellitas || [],
+            actividad: data.actividad || [],
+            evidencias: data.evidencias || [],
+            quizzes_semana: parseInt(data.quizzes_semana),
+            tareas_semana: parseInt(data.tareas_semana)
         });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // CRON JOBS
-cron.schedule('0 7 * * *', () => {
+cron.schedule('0 7 * * *', async () => {
     const manana = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    db.all(`SELECT * FROM evaluaciones WHERE fecha = ?`, [manana], (err, rows) => {
-        rows.forEach(ev => {
+    try {
+        const result = await pool.query(`SELECT * FROM evaluaciones WHERE fecha = $1`, [manana]);
+        result.rows.forEach(ev => {
             console.log(`RECORDATORIO: Mañana tienes ${ev.asignatura} - ${ev.titulo}`);
         });
-    });
+    } catch (err) {
+        console.error("Error en cron job:", err);
+    }
 });
 
 // Health check para Render
