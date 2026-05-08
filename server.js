@@ -13,27 +13,26 @@ const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'mi-plan-estudio-secret-key-2026';
-const DATA_DIR = process.env.DATA_DIR || '.';
+
+// Render usa /tmp para archivos temporales que sobreviven reinicios cortos
+// Pero para SQLite en Free tier, usamos el directorio actual (persiste durante la vida del contenedor)
+const DATA_DIR = process.env.RENDER ? './data' : '.';
+const UPLOADS_DIR = process.env.RENDER ? './uploads' : 'uploads';
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// Asegurar directorios de carga
-const uploadDirs = ['uploads/planes', 'uploads/materiales', 'uploads/evidencias', 'uploads/temp'];
-uploadDirs.forEach(dir => {
-    const fullPath = path.join(DATA_DIR, dir);
-    if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
+// Crear directorios necesarios
+[DATA_DIR, UPLOADS_DIR, `${UPLOADS_DIR}/planes`, `${UPLOADS_DIR}/materiales`, `${UPLOADS_DIR}/evidencias`, `${UPLOADS_DIR}/temp`].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-
-// BASE DE DATOS
-const dbPath = path.join(DATA_DIR, 'database.sqlite');
-const db = new sqlite3.Database(dbPath);
-
+// BASE DE DATOS - SQLite en archivo local (persiste en Render mientras no redeployes)
+const DB_PATH = path.join(DATA_DIR, 'database.sqlite');
+const db = new sqlite3.Database(DB_PATH);
 
 db.serialize(() => {
-    // Tabla de usuarios con roles
     db.run(`CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nombre TEXT NOT NULL,
@@ -165,13 +164,12 @@ db.serialize(() => {
     });
 });
 
-// MULTER
+// MULTER - Usar directorio de uploads configurable
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const folder = req.params.tipo || 'temp';
-        cb(null, path.join(DATA_DIR, 'uploads', folder));
+        cb(null, `${UPLOADS_DIR}/${folder}`);
     },
-
     filename: (req, file, cb) => {
         const unique = uuidv4() + path.extname(file.originalname);
         cb(null, unique);
@@ -478,8 +476,6 @@ app.get('/api/padres/dashboard', authMiddleware, requirePadre, (req, res) => {
 });
 
 // CRON JOBS
-const recordatoriosEnviados = new Set();
-
 cron.schedule('0 7 * * *', () => {
     const manana = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     db.all(`SELECT * FROM evaluaciones WHERE fecha = ?`, [manana], (err, rows) => {
@@ -489,14 +485,22 @@ cron.schedule('0 7 * * *', () => {
     });
 });
 
+// Health check para Render
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`Mi Plan de Estudio corriendo en http://localhost:${PORT}`);
+    console.log(`Mi Plan de Estudio corriendo en puerto ${PORT}`);
     console.log(`🔐 Credenciales por defecto:`);
     console.log(`   Padre: padres@familia.cl / padre2026`);
     console.log(`   Hijo:  hija@familia.cl / hija2026`);
     console.log(`👨‍👩‍👧 Panel Padres: disponible solo para usuarios con rol 'padre'`);
+    if (process.env.RENDER) {
+        console.log(`🌐 Running on Render.com`);
+    }
 });
