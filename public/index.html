@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mi Plan de Estudio - 6° SA</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --mate: #FFD93D; --leng: #4D96FF; --cien: #6BCB77; --hist: #AA7C55;
+  --ingl: #FF6B6B; --alem: #9B59B6; --reli: #ECF0F1; --arte: #FF9F45;
+  --edfis: #2C3E50; --tecno: #95A5A6; --orie: #E74C3C; --musi: #1ABC9C;
+  --hogar: #FF6B9D; --bg: #F8F9FA; --card: #FFFFFF; --text: #2C3E50; --text2: #7F8C8D;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; padding-bottom: 80px; }
+
+.login-screen {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 10000; padding: 20px;
+}
+.login-screen.hidden { display: none !important; }
+.login-card {
+  background: white; border-radius: 24px; padding: 32px 24px;
+  width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  text-align: center;
+}
+.login-emoji { font-size: 4rem; margin-bottom: 12px; }
+.login-title { font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.login-sub { font-size: 0.85rem; color: var(--text2); margin-bottom: 24px; }
+.login-input {
+  width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0;
+  border-radius: 14px; font-size: 1rem; font-family: 'Nunito', sans-serif;
+  margin-bottom: 12px; outline: none; transition: border-color 0.2s;
+}
+.login-input:focus { border-color: #667eea; }
+.login-btn {
+  width: 100%; padding: 16px; border: none; border-radius: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white; font-size: 1rem; font-weight: 800; font-family: 'Nunito', sans-serif;
+  cursor: pointer; margin-top: 8px; transition: transform 0.2s;
+}
+.login-btn:active { transform: scale(0.98); }
+.login-error {
+  background: #FFE8E8; color: #c0392b; padding: 12px; border-radius: 10px;
+  font-size: 0.85rem; margin-bottom: 12px; display: none;
+}
+.login-hint {
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee;
+  font-size: 0.75rem; color: var(--text2); line-height: 1.6;
+}
+.user-badge {
+  position: fixed; top: 70px; left: 10px; z-index: 200;
+  background: white; border-radius: 20px; padding: 6px 14px;
+  font-size: 0.75rem; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex; align-items: center; gap: 6px;
+}
+.user-badge .rol { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; }
+.user-badge .rol.padre { background: #E8F0FF; color: #667eea; }
+.user-badge .rol.hijo { background: #E8F8E8; color: #27ae60; }
+.logout-btn {
+  background: none; border: none; color: #e74c3c; cursor: pointer;
+  font-size: 0.7rem; font-weight: 700; font-family: 'Nunito';
+}
+
+.header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 1.3rem; font-weight: 800; }
+.header .sub { font-size: 0.85rem; opacity: 0.9; margin-top: 4px; }
+.screen { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.card-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text2); margin-bottom: 12px; letter-spacing: 1px; }
+.alert-exam { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%); color: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: center; }
+.alert-exam .emoji { font-size: 2rem; margin-bottom: 8px; }
+.btn-primary { background: white; color: #ee5a5a; border: none; padding: 12px 24px; border-radius: 25px; font-weight: 800; font-size: 0.9rem; margin-top: 12px; cursor: pointer; width: 100%; font-family: 'Nunito', sans-serif; }
+.clase-item { display: flex; align-items: center; padding: 12px; border-radius: 12px; margin-bottom: 8px; transition: transform 0.2s; }
+.clase-item:active { transform: scale(0.98); }
+.clase-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 14px; flex-shrink: 0; }
+.clase-info h4 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+.clase-info p { font-size: 0.8rem; color: var(--text2); }
+.clase-tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-top: 4px; }
+.tag-exam { background: #ff6b6b; color: white; } .tag-practice { background: #ffd93d; color: #333; }
+.resumen-box { background: #FFF8E7; border-left: 4px solid #FFD93D; border-radius: 12px; padding: 16px; margin: 12px 0; }
+.resumen-box h4 { color: #B8860B; font-size: 0.85rem; margin-bottom: 10px; }
+.resumen-box ul { list-style: none; padding: 0; }
+.resumen-box li { padding: 6px 0; font-size: 0.9rem; line-height: 1.5; border-bottom: 1px dashed #eee; }
+.quiz-question { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center; }
+.quiz-question h3 { font-size: 1.1rem; margin-bottom: 20px; line-height: 1.4; }
+.quiz-options { display: grid; gap: 10px; }
+.quiz-btn { padding: 16px; border: 2px solid #e0e0e0; border-radius: 14px; background: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif; }
+.quiz-btn:active { transform: scale(0.97); }
+.quiz-btn.correct { border-color: #6BCB77; background: #E8F8E8; }
+.quiz-btn.wrong { border-color: #FF6B6B; background: #FFE8E8; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.stat-box { background: white; border-radius: 14px; padding: 16px; text-align: center; }
+.stat-number { font-size: 2rem; font-weight: 800; color: #667eea; }
+.logro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+.logro-item { text-align: center; padding: 12px 4px; border-radius: 12px; background: white; }
+.logro-emoji { font-size: 1.8rem; margin-bottom: 4px; }
+.logro-stars { font-size: 0.8rem; color: #FFD93D; }
+.logro-name { font-size: 0.65rem; color: var(--text2); margin-top: 2px; }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #eee; padding: 8px 0; z-index: 100; }
+.bottom-btn { flex: 1; text-align: center; border: none; background: none; font-family: 'Nunito', sans-serif; font-size: 0.7rem; color: var(--text2); cursor: pointer; padding: 4px; }
+.bottom-btn.active { color: #667eea; }
+.bottom-btn .icon { font-size: 1.4rem; display: block; margin-bottom: 2px; }
+.hidden { display: none !important; }
+.center-text { text-align: center; }
+.big-emoji { font-size: 3rem; margin: 16px 0; }
+.success-msg { background: #E8F8E8; color: #2d6a2d; padding: 16px; border-radius: 14px; margin: 16px 0; font-weight: 700; text-align: center; }
+
+.padres-toggle { position: fixed; top: 70px; right: 10px; z-index: 200; background: white; border: 2px solid #667eea; border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; font-weight: 700; color: #667eea; cursor: pointer; font-family: 'Nunito', sans-serif; }
+.padres-panel { display: none; background: #f0f0f0; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+.padres-panel.active { display: block; }
+.padres-panel h4 { color: #667eea; margin-bottom: 12px; font-size: 0.9rem; }
+.activity-log { font-size: 0.8rem; color: var(--text2); line-height: 1.8; }
+.activity-log span { display: inline-block; padding: 2px 8px; border-radius: 10px; background: white; margin-right: 6px; font-size: 0.75rem; }
+.tarea-item { display: flex; align-items: center; padding: 14px; border-radius: 14px; margin-bottom: 10px; background: white; border: 2px solid #FFE4EC; transition: all 0.3s; }
+.tarea-item.completada { border-color: #6BCB77; background: #F0FFF0; opacity: 0.8; }
+.tarea-item.completada .tarea-texto { text-decoration: line-through; color: #999; }
+.tarea-icon { width: 44px; height: 44px; border-radius: 12px; background: #FFE4EC; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-right: 12px; flex-shrink: 0; }
+.tarea-item.completada .tarea-icon { background: #6BCB77; }
+.tarea-info { flex: 1; }
+.tarea-info h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
+.tarea-info p { font-size: 0.75rem; color: var(--text2); }
+.tarea-btn { padding: 10px 16px; border-radius: 20px; border: none; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.tarea-btn-foto { background: #FF6B9D; color: white; }
+.tarea-btn-hecho { background: #6BCB77; color: white; }
+.foto-evidencia { width: 100%; border-radius: 12px; margin-top: 10px; max-height: 200px; object-fit: cover; border: 3px solid #6BCB77; }
+.input-file-hidden { display: none; }
+.seccion-hogar { background: linear-gradient(135deg, #FFE4EC 0%, #FFF0F5 100%); border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+.seccion-hogar .card-title { color: #FF6B9D; }
+.racha-hogar { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: white; border-radius: 12px; margin-bottom: 12px; }
+.racha-hogar .numero { font-size: 2rem; font-weight: 800; color: #FF6B9D; }
+.upload-zone { border: 3px dashed #667eea; border-radius: 16px; padding: 30px; text-align: center; background: #f8f9ff; margin: 16px 0; }
+.upload-zone .icon { font-size: 3rem; margin-bottom: 12px; }
+.upload-btn { background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 25px; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; }
+.loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.padres-evidencia { display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 12px; margin-bottom: 8px; }
+.padres-evidencia .info { flex: 1; font-size: 0.8rem; }
+.padres-evidencia .estado { padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; }
+.estado-aprobado { background: #E8F8E8; color: #27ae60; }
+.estado-pendiente { background: #FFF8E7; color: #f39c12; }
+.btn-aprobacion { display: flex; gap: 8px; margin-top: 8px; }
+.btn-aprobacion button { flex: 1; padding: 8px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.75rem; cursor: pointer; font-family: 'Nunito', sans-serif; }
+.btn-aprobar { background: #6BCB77; color: white; }
+.btn-rechazar { background: #FF6B6B; color: white; }
+.celebracion { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 1000; text-align: center; animation: popIn 0.5s ease; }
+@keyframes popIn { 0% { transform: translate(-50%, -50%) scale(0); } 80% { transform: translate(-50%, -50%) scale(1.1); } 100% { transform: translate(-50%, -50%) scale(1); } }
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+
+.bloqueo-msg {
+  background: #FFF8E7; border: 2px dashed #FFD93D; border-radius: 14px;
+  padding: 20px; text-align: center; margin: 16px 0;
+}
+.bloqueo-msg .emoji { font-size: 2rem; margin-bottom: 8px; }
+.bloqueo-msg p { font-size: 0.85rem; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-emoji">📚</div>
+    <div class="login-title">Mi Plan de Estudio</div>
+    <div class="login-sub">6° SA - Santa Úrsula de Maipú</div>
+    <div class="login-error" id="loginError">❌ Email o contraseña incorrectos</div>
+    <input type="email" class="login-input" id="loginEmail" placeholder="📧 Email" value="hija@familia.cl">
+    <input type="password" class="login-input" id="loginPassword" placeholder="🔒 Contraseña" value="hija2026">
+    <button class="login-btn" onclick="doLogin()">Ingresar 🚀</button>
+    <div class="login-hint">
+      <b>👨‍👩‍👧 Padres:</b> padres@familia.cl / padre2026<br>
+      <b>👧 Hijo/a:</b> hija@familia.cl / hija2026
+    </div>
+  </div>
+</div>
+
+<div id="appContainer" style="display:none">
+<div class="header">
+  <h1>📚 Mi Plan de Estudio</h1>
+  <div class="sub">6° SA - Santa Úrsula de Maipú</div>
+</div>
+
+<div class="user-badge" id="userBadge">
+  <span id="userName">Usuario</span>
+  <span class="rol" id="userRol">hijo</span>
+  <button class="logout-btn" onclick="doLogout()">🚪 Salir</button>
+</div>
+
+<button class="padres-toggle hidden" id="btnPanelPadres" onclick="togglePadresPanel()">👨‍👩‍👧 Panel Padres</button>
+
+<div class="padres-panel" id="padresPanel">
+  <h4>📊 Progreso en tiempo real</h4>
+  <div id="padres-stats"></div>
+  <div style="margin-top:16px; padding-top:16px; border-top:2px solid #ddd">
+    <h4>🏠 Evidencias pendientes de revisión</h4>
+    <div id="padres-evidencias"></div>
+  </div>
+  <div style="margin-top:16px; padding-top:16px; border-top:2px solid #ddd">
+    <h4>📝 Actividad reciente</h4>
+    <div id="padres-actividad" class="activity-log"></div>
+  </div>
+</div>
+
+<div class="screen active" id="screen-hoy">
+  <div class="alert-exam" id="alerta-prueba">
+    <div class="emoji">📋</div>
+    <h3>Cargando próximas pruebas...</h3>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 Clases de hoy</div>
+    <div id="clases-hoy">Cargando...</div>
+  </div>
+  <div class="seccion-hogar">
+    <div class="card-title">🏠 Mis Tareas de Hoy</div>
+    <div class="racha-hogar">
+      <span class="numero" id="racha-numero">🔥 0</span>
+      <span class="texto">días seguidos completando<br>tareas del hogar</span>
+    </div>
+    <div id="tareas-hogar">Cargando tareas...</div>
+  </div>
+  <div class="card">
+    <div class="card-title">⭐ Mis Estrellitas</div>
+    <div class="logro-grid" id="estrellitas-grid"></div>
+    <div style="text-align:center; margin-top:12px; padding:10px; background:#FFF8E7; border-radius:12px; font-size:0.85rem; font-weight:700" id="meta-texto">
+      🎯 Meta: 20 estrellitas = 🍕 Pizza
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screen-pruebas">
+  <div class="card">
+    <div class="card-title">📅 PRÓXIMAS PRUEBAS</div>
+    <div id="lista-pruebas">Cargando...</div>
+  </div>
+</div>
+
+<div class="screen" id="screen-estudiar">
+  <div class="card">
+    <div class="card-title">📖 ELEGIR MATERIA PARA REPASAR</div>
+    <div class="clase-item" style="background: #F3E8F8" onclick="showResumen('aleman')">
+      <div class="clase-icon" style="background: var(--alem)">🇩🇪</div>
+      <div class="clase-info"><h4>Alemán</h4><p>Klassenarbeit - Aufräumen</p><span class="clase-tag" style="background:#9B59B6; color:white">📋 LISTO</span></div>
+    </div>
+    <div class="clase-item" style="background: #E8F8E8" onclick="showResumen('ciencias')">
+      <div class="clase-icon" style="background: var(--cien)">🧪</div>
+      <div class="clase-info"><h4>Ciencias Naturales</h4><p>Cambios de estado</p><span class="clase-tag" style="background:#6BCB77; color:white">📋 LISTO</span></div>
+    </div>
+    <div class="clase-item" style="background: #FFF8E7" onclick="showResumen('matematica')">
+      <div class="clase-icon" style="background: var(--mate)">🔢</div>
+      <div class="clase-info"><h4>Matemática</h4><p>Fracciones + MCM/MCD</p><span class="clase-tag" style="background:#FFD93D; color:#333">📋 LISTO</span></div>
+    </div>
+    <div class="clase-item" style="background: #E8F0FF" onclick="showResumen('lenguaje')">
+      <div class="clase-icon" style="background: var(--leng)">📖</div>
+      <div class="clase-info"><h4>Lenguaje</h4><p>Palabras que inspiran</p><span class="clase-tag" style="background:#4D96FF; color:white">📋 LISTO</span></div>
+    </div>
+    <div class="clase-item" style="background: #FFF0E8" onclick="showResumen('historia')">
+      <div class="clase-icon" style="background: var(--hist)">🏛️</div>
+      <div class="clase-info"><h4>Historia</h4><p>Arte contemporáneo</p><span class="clase-tag" style="background:#AA7C55; color:white">📋 LISTO</span></div>
+    </div>
+  </div>
+
+  <div id="resumen-aleman" class="hidden"></div>
+  <div id="resumen-ciencias" class="hidden"></div>
+  <div id="resumen-matematica" class="hidden"></div>
+  <div id="resumen-lenguaje" class="hidden"></div>
+  <div id="resumen-historia" class="hidden"></div>
+
+  <div id="quiz-container" class="hidden">
+    <div class="card"><div id="quiz-content"></div></div>
+  </div>
+
+  <div class="card" style="margin-top:20px" id="uploadSection">
+    <div id="uploadPadres">
+      <div class="card-title">📤 SUBIR NUEVO MATERIAL DEL MINEDUC</div>
+      <div class="upload-zone">
+        <div class="icon">📄</div>
+        <p>Sube un PDF o Word<br>La IA creará un resumen automático</p>
+        <form id="uploadForm" enctype="multipart/form-data">
+          <select id="uploadAsignatura" style="padding:8px; border-radius:8px; border:1px solid #ddd; margin-bottom:10px; font-family:'Nunito'; width:100%">
+            <option value="matematica">🔢 Matemática</option>
+            <option value="lenguaje">📖 Lenguaje</option>
+            <option value="ciencias">🧪 Ciencias Naturales</option>
+            <option value="historia">🏛️ Historia</option>
+            <option value="aleman">🇩🇪 Alemán</option>
+            <option value="ingles">🇬🇧 Inglés</option>
+          </select>
+          <input type="file" id="uploadFile" accept=".pdf,.docx" style="margin-bottom:10px; width:100%" onchange="mostrarNombreArchivo()">
+          <div id="nombre-archivo" style="font-size:0.8rem; color:#667eea; margin-bottom:10px; font-weight:700"></div>
+          <button type="button" class="upload-btn" onclick="subirMaterial()">
+            <span id="upload-text">🚀 Crear resumen con IA</span>
+            <span id="upload-loading" class="loading hidden"></span>
+          </button>
+        </form>
+      </div>
+    </div>
+    <div id="uploadBloqueo" class="hidden">
+      <div class="bloqueo-msg">
+        <div class="emoji">🔒</div>
+        <p><b>Solo los padres pueden subir materiales</b><br>
+        Pide a mamá o papá que suba los documentos del MINEDUC</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screen-logros">
+  <div class="card">
+    <div class="card-title">⭐ MIS ESTRELLAS POR MATERIA</div>
+    <div class="logro-grid" id="logros-grid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏠 LOGROS DEL HOGAR</div>
+    <div id="logros-hogar"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏆 LOGROS ESPECIALES</div>
+    <div id="logros-especiales"></div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="bottom-btn active" onclick="showScreen('hoy')"><span class="icon">📅</span>Hoy</button>
+  <button class="bottom-btn" onclick="showScreen('pruebas')"><span class="icon">📋</span>Pruebas</button>
+  <button class="bottom-btn" onclick="showScreen('estudiar')"><span class="icon">📖</span>Estudiar</button>
+  <button class="bottom-btn" onclick="showScreen('logros')"><span class="icon">⭐</span>Logros</button>
+</div>
+
+</div>
+
+<script>
+const API = '';
+let currentUser = null;
+let authToken = localStorage.getItem('token');
+
+const resumenes = {
+  aleman: {
+    titulo: 'Alemán - Klassenarbeit', subtitulo: '"Hilfe, ich muss aufräumen"',
+    color: '#9B59B6', bg: '#F3E8F8',
+    puntos: [
+      '🧹 <b>aufräumen</b> = ordenar/limpiar (verbo separable)',
+      '🏠 <b>die Wohnung</b> = el departamento/casa',
+      '🛏️ <b>das Zimmer</b> = la habitación',
+      '🧺 <b>die Wäsche</b> = la ropa (para lavar)',
+      '🧽 <b>staubsaugen</b> = pasar la aspiradora',
+      '🧹 <b>fegen</b> = barrer',
+      '🧽 <b>wischen</b> = trapear',
+      '⚠️ <b>Verbos separables</b>: prefijo al FINAL de la oración',
+      '📝 <b>Estructura</b>: Sujeto + verbo + ... + prefijo separado'
+    ]
+  },
+  ciencias: {
+    titulo: 'Ciencias Naturales', subtitulo: 'Cambios de estado de la materia',
+    color: '#6BCB77', bg: '#E8F8E8',
+    puntos: [
+      '🔵 <b>SÓLIDO</b>: Forma y volumen fijos. Partículas muy juntas.',
+      '💧 <b>LÍQUIDO</b>: Volumen fijo, toma forma del recipiente.',
+      '💨 <b>GAS</b>: Sin forma ni volumen fijos. Ocupa todo el espacio.',
+      '🔥 <b>FUSIÓN</b>: Sólido → Líquido (necesita CALOR)',
+      '❄️ <b>SOLIDIFICACIÓN</b>: Líquido → Sólido (necesita FRÍO)',
+      '💨 <b>EVAPORACIÓN</b>: Líquido → Gas (necesita CALOR)',
+      '💧 <b>CONDENSACIÓN</b>: Gas → Líquido (necesita FRÍO)',
+      '⚠️ <b>IMPORTANTE</b>: La materia NO se pierde, solo cambia de estado.'
+    ]
+  },
+  matematica: {
+    titulo: 'Matemática', subtitulo: 'Fracciones + MCM y MCD',
+    color: '#FFD93D', bg: '#FFF8E7',
+    puntos: [
+      '🍕 <b>FRACCIÓN</b>: Arriba = numerador, abajo = denominador',
+      '➕ <b>SUMAR iguales</b>: Sumo arriba, abajo igual',
+      '➕ <b>SUMAR distintos</b>: Busco MCM como denominador común',
+      '✖️ <b>MULTIPLICAR</b>: Arriba × arriba, abajo × abajo',
+      '➗ <b>DIVIDIR</b>: Multiplico por la inversa',
+      '🔢 <b>MCM</b>: Múltiplo común más chico',
+      '🔢 <b>MCD</b>: Divisor común más grande',
+      '⚠️ <b>TRUCO</b>: Simplificar = dividir por MCD'
+    ]
+  },
+  lenguaje: {
+    titulo: 'Lenguaje', subtitulo: 'Unidad 2: "Palabras que inspiran"',
+    color: '#4D96FF', bg: '#E8F0FF',
+    puntos: [
+      '📖 <b>HECHO</b>: Lo que pasó. Se puede comprobar.',
+      '💭 <b>OPINIÓN</b>: Lo que alguien piensa o siente.',
+      '🔍 <b>DETALLE</b>: Información específica del texto.',
+      '📝 <b>IDEA PRINCIPAL</b>: Mensaje más importante.',
+      '✍️ <b>PARTICIPIO IRREGULAR</b>: No sigue la regla normal.',
+      '⚠️ <b>TRUCO</b>: Terminan en -TO, -CHO, -SO'
+    ]
+  },
+  historia: {
+    titulo: 'Historia', subtitulo: 'Arte contemporáneo - Escultura',
+    color: '#AA7C55', bg: '#FFF0E8',
+    puntos: [
+      '🎨 <b>ARTE CONTEMPORÁNEO</b>: Últimos 50-70 años',
+      '🗿 <b>ESCULTURA</b>: Formas en 3D',
+      '🔨 <b>MATERIALES</b>: Plástico, luz, sonido, reciclados',
+      '👤 <b>ALEXANDER CALDER</b>: Inventó los "mobiles"',
+      '🥫 <b>ANDY WARHOL</b>: Latas de sopa como arte pop',
+      '🌊 <b>EFÍMERA</b>: Dura poco (arena, hielo)',
+      '♻️ <b>RECICLADO</b>: Basura → escultura',
+      '⚠️ <b>IMPORTANTE</b>: ¡La idea > la técnica!'
+    ]
+  }
+};
+
+const quizzes = {
+  aleman: [
+    { q: "¿Qué significa 'aufräumen'?", options: ["Dormir", "Ordenar/limpiar", "Cocinar", "Jugar"], correct: 1, explanation: "'Aufräumen' = ordenar/limpiar. Verbo separable." },
+    { q: "¿Cómo se dice 'la habitación' en alemán?", options: ["die Wohnung", "das Zimmer", "die Wäsche", "der Tisch"], correct: 1, explanation: "'Das Zimmer' = habitación. 'Die Wohnung' = departamento." },
+    { q: "En verbos separables, ¿dónde va el prefijo?", options: ["Al principio", "En el medio", "Al final de la oración", "No va"], correct: 2, explanation: "¡Al final! Ej: 'Ich räume mein Zimmer auf'" },
+    { q: "¿Qué significa 'staubsaugen'?", options: ["Barrer", "Trapear", "Pasar la aspiradora", "Lavar ropa"], correct: 2, explanation: "'Staubsaugen' = pasar la aspiradora" },
+    { q: "Completa: Ich ___ mein Zimmer ___", options: ["räume... auf", "auf... räume", "räumst... auf", "räumen... auf"], correct: 0, explanation: "'Ich räume... auf' = Yo ordeno. Prefijo al final." }
+  ],
+  ciencias: [
+    { q: "¿Qué estado tiene forma y volumen fijos?", options: ["Líquido", "Gas", "Sólido", "Plasma"], correct: 2, explanation: "¡El sólido! Partículas muy juntas." },
+    { q: "¿Qué necesita el hielo para convertirse en agua?", options: ["Frío", "Calor", "Aire", "Oscuridad"], correct: 1, explanation: "¡Calor! Es FUSIÓN (sólido→líquido)" },
+    { q: "Vapor del baño en gotas del espejo es...", options: ["Evaporación", "Condensación", "Fusión", "Solidificación"], correct: 1, explanation: "¡Condensación! Gas→Líquido (necesita frío)" },
+    { q: "¿Qué pasa con la materia al cambiar de estado?", options: ["Se pierde", "Se destruye", "Se conserva, solo cambia", "Se hace más pesada"], correct: 2, explanation: "¡Se conserva! Solo cambia de forma." },
+    { q: "Orden correcto: Hielo → ___ → ___", options: ["Gas→Líquido", "Líquido→Gas", "Sólido→Líquido", "Líquido→Sólido"], correct: 1, explanation: "Hielo(sólido)→Agua(líquido)→Vapor(gas)" }
+  ],
+  matematica: [
+    { q: "¿Cuánto es ½ + ¼?", options: ["2/6", "3/4", "1/3", "1"], correct: 1, explanation: "½ = 2/4, entonces 2/4 + ¼ = ¾" },
+    { q: "¿Cuánto es ½ × ⅓?", options: ["1/6", "2/3", "3/4", "1/5"], correct: 0, explanation: "1×1=1, 2×3=6. Resultado: 1/6" },
+    { q: "MCM de 4 y 6?", options: ["2", "12", "24", "6"], correct: 1, explanation: "Múltiplos de 4: 4,8,12... de 6: 6,12... Común más chico: 12" },
+    { q: "MCD de 12 y 18?", options: ["3", "6", "9", "2"], correct: 1, explanation: "Divisores de 12: 1,2,3,4,6,12. De 18: 1,2,3,6,9,18. Mayor común: 6" },
+    { q: "Simplifica 8/12", options: ["4/6", "2/3", "1/2", "3/4"], correct: 1, explanation: "MCD de 8 y 12 es 4. 8÷4=2, 12÷4=3. Resultado: 2/3" }
+  ],
+  lenguaje: [
+    { q: "¿Cuál es un HECHO?", options: ["'El fútbol es aburrido'", "'Chile tiene 19 millones de habitantes'", "'La pizza es la mejor'", "'Los perros son mejores'"], correct: 1, explanation: "¡Es hecho porque se comprueba con datos!" },
+    { q: "¿Cuál es un DETALLE?", options: ["La idea principal", "Info específica", "Opinión del autor", "El título"], correct: 1, explanation: "¡Detalle = info específica! Ej: 'perro negro con manchas'" },
+    { q: "Participio de 'decir'?", options: ["Decido", "Dicho", "Diciendo", "Decirado"], correct: 1, explanation: "¡'Dicho'! Es irregular." },
+    { q: "Participio de 'hacer'?", options: ["Haciendo", "Hacido", "Hecho", "Hacerado"], correct: 2, explanation: "¡'Hecho'! Termina en -CHO." },
+    { q: "Terminaciones de participios irregulares:", options: ["-ADO, -IDO", "-ANDO, -IENDO", "-TO, -CHO, -SO", "-AR, -ER, -IR"], correct: 2, explanation: "¡-TO, -CHO, -SO! Ej: puesto, hecho, escrito" }
+  ],
+  historia: [
+    { q: "¿Qué es un 'mobile'?", options: ["Estatua de piedra", "Escultura que se mueve con aire", "Pintura grande", "Escultura de metal"], correct: 1, explanation: "¡Alexander Calder inventó los mobiles!" },
+    { q: "¿Materiales del arte contemporáneo?", options: ["Solo piedra y bronce", "Solo madera y yeso", "Plástico, luz, sonido, reciclados", "Solo pintura"], correct: 2, explanation: "¡Materiales modernos y reciclados!" },
+    { q: "¿Escultura efímera?", options: ["Dura para siempre", "Dura poco (arena, hielo)", "Es muy grande", "Es muy cara"], correct: 1, explanation: "¡Efímera = dura poco! Como castillos de arena." },
+    { q: "¿Artista de latas de sopa?", options: ["Picasso", "Andy Warhol", "Van Gogh", "Da Vinci"], correct: 1, explanation: "¡Andy Warhol! Arte pop con objetos cotidianos." },
+    { q: "¿Qué es más importante en arte contemporáneo?", options: ["Técnica perfecta", "La idea o concepto", "Colores bonitos", "Ser realista"], correct: 1, explanation: "¡La idea es más importante que la técnica!" }
+  ]
+};
+
+let currentQuiz = null, currentQuestion = 0, correctAnswers = 0, currentSubject = '';
+
+async function checkAuth() {
+  if (!authToken) { showLogin(); return; }
+  try {
+    const res = await fetch(API + '/api/auth/me', { headers: { 'Authorization': 'Bearer ' + authToken } });
+    if (!res.ok) throw new Error('Token inválido');
+    currentUser = await res.json();
+    showApp();
+  } catch (e) {
+    localStorage.removeItem('token'); authToken = null; showLogin();
+  }
+}
+
+function showLogin() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appContainer').style.display = 'none';
+}
+
+function showApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appContainer').style.display = 'block';
+  document.getElementById('userName').textContent = currentUser.nombre;
+  const rolEl = document.getElementById('userRol');
+  rolEl.textContent = currentUser.rol === 'padre' ? '👨‍👩‍👧 Padre' : '👧 Hijo/a';
+  rolEl.className = 'rol ' + currentUser.rol;
+  if (currentUser.rol === 'padre') {
+    document.getElementById('btnPanelPadres').classList.remove('hidden');
+    document.getElementById('uploadPadres').classList.remove('hidden');
+    document.getElementById('uploadBloqueo').classList.add('hidden');
+  } else {
+    document.getElementById('btnPanelPadres').classList.add('hidden');
+    document.getElementById('padresPanel').classList.remove('active');
+    document.getElementById('uploadPadres').classList.add('hidden');
+    document.getElementById('uploadBloqueo').classList.remove('hidden');
+  }
+  cargarDatosHoy();
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const errorEl = document.getElementById('loginError');
+  try {
+    const res = await fetch(API + '/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (!res.ok) { errorEl.style.display = 'block'; return; }
+    const data = await res.json();
+    authToken = data.token; localStorage.setItem('token', authToken);
+    currentUser = data.user; errorEl.style.display = 'none'; showApp();
+  } catch (e) { errorEl.style.display = 'block'; errorEl.textContent = '❌ Error de conexión'; }
+}
+
+function doLogout() {
+  localStorage.removeItem('token'); authToken = null; currentUser = null;
+  showLogin();
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+function authHeaders() { return { 'Authorization': 'Bearer ' + authToken }; }
+
+function showScreen(screenName) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screenName).classList.add('active');
+  document.querySelectorAll('.bottom-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.bottom-btn').classList.add('active');
+  if (screenName === 'hoy') cargarDatosHoy();
+  if (screenName === 'pruebas') cargarPruebas();
+  if (screenName === 'logros') cargarLogros();
+}
+
+
+async function cargarDatosHoy() {
+  try {
+    const pruebas = await fetch(API + '/api/evaluaciones', { headers: authHeaders() }).then(r => r.json());
+    const proxima = pruebas[0];
+    if (proxima) {
+      const dias = Math.ceil((new Date(proxima.fecha) - new Date()) / (1000 * 60 * 60 * 24));
+      document.getElementById('alerta-prueba').innerHTML = '<div class="emoji">' + getEmojiAsignatura(proxima.asignatura) + '</div><h3>Próxima prueba: ' + proxima.asignatura + '</h3><p>' + formatearFecha(proxima.fecha) + ' (en ' + dias + ' días)<br>' + proxima.titulo + '</p><button class="btn-primary" onclick="showScreen('pruebas')">📖 EMPEZAR A REPASAR</button>';
+    } else {
+      document.getElementById('alerta-prueba').innerHTML = '<div class="emoji">🎉</div><h3>¡No hay pruebas próximas!</h3><p>Es momento de adelantar y repasar con calma</p>';
+    }
+
+    const clases = await fetch(API + '/api/plan/hoy', { headers: authHeaders() }).then(r => r.json());
+    document.getElementById('clases-hoy').innerHTML = clases.length ? clases.map(c => '<div class="clase-item" style="background: ' + getColorAsignatura(c.asignatura) + '20"><div class="clase-icon" style="background: ' + getColorAsignatura(c.asignatura) + '">' + getEmojiAsignatura(c.asignatura) + '</div><div class="clase-info"><h4>' + c.asignatura + '</h4><p>' + c.hora_inicio + ' - ' + c.hora_fin + '</p><span class="clase-tag tag-practice">' + c.actividad.substring(0, 50) + '...</span></div></div>').join('') : '<p style="text-align:center; color:#999; padding:20px">No hay clases registradas. Sube el plan semanal.</p>';
+
+    const tareas = await fetch(API + '/api/tareas/hoy', { headers: authHeaders() }).then(r => r.json());
+    document.getElementById('tareas-hogar').innerHTML = tareas.map(t => {
+      let btnHtml = '';
+      if (currentUser.rol === 'hijo') {
+        if (t.completada) {
+          btnHtml = '<button class="tarea-btn tarea-btn-hecho" onclick="toggleTarea(' + t.id + ')">↩️ Deshacer</button>';
+        } else if (t.requiere_foto) {
+          btnHtml = '<label class="tarea-btn tarea-btn-foto" style="cursor:pointer">📸 Subir foto<input type="file" accept="image/*" class="input-file-hidden" onchange="subirFoto(' + t.id + ', this)"></label>';
+        } else {
+          btnHtml = '<button class="tarea-btn tarea-btn-hecho" onclick="completarTarea(' + t.id + ')">✅ Hecho</button>';
+        }
+      } else {
+        if (t.completada && !t.aprobada) {
+          btnHtml = '<div class="btn-aprobacion"><button class="btn-aprobar" onclick="aprobarTareaPadre(' + t.id + ', '' + new Date().toISOString().split('T')[0] + '', 1)">✅ Aprobar</button><button class="btn-rechazar" onclick="aprobarTareaPadre(' + t.id + ', '' + new Date().toISOString().split('T')[0] + '', 0)">❌ Rechazar</button></div>';
+        } else if (t.aprobada) {
+          btnHtml = '<span style="color:#27ae60; font-size:0.8rem; font-weight:700">✅ Aprobada</span>';
+        } else {
+          btnHtml = '<span style="color:#999; font-size:0.8rem">Pendiente</span>';
+        }
+      }
+      return '<div class="tarea-item ' + (t.completada ? 'completada' : '') + '" id="tarea-' + t.id + '"><div class="tarea-icon">' + t.emoji + '</div><div class="tarea-info"><h4 class="tarea-texto">' + t.titulo + '</h4><p>' + t.horario + '</p>' + (t.foto_path ? '<div style="font-size:0.7rem; color:#6BCB77; margin-top:4px">📸 Foto enviada</div>' : '') + (t.aprobada ? '<div style="font-size:0.7rem; color:#27ae60; margin-top:4px">✅ Aprobado por papá/mamá</div>' : (t.foto_path ? '<div style="font-size:0.7rem; color:#f39c12; margin-top:4px">⏳ Esperando aprobación</div>' : '')) + '</div>' + btnHtml + '</div>';
+    }).join('');
+
+    const estrellitas = await fetch(API + '/api/estrellitas', { headers: authHeaders() }).then(r => r.json());
+    actualizarEstrellitas(estrellitas);
+  } catch (e) {
+    console.log('Modo offline:', e);
+    if (!currentUser) return;
+    cargarDatosOffline();
+  }
+}
+
+function cargarDatosOffline() {
+  document.getElementById('alerta-prueba').innerHTML = '<div class="emoji">🇩🇪</div><h3>Próxima prueba: Alemán</h3><p>Viernes 15 de mayo (en 7 días)<br>Klassenarbeit</p><button class="btn-primary" onclick="showScreen('pruebas')">📖 EMPEZAR A REPASAR</button>';
+  document.getElementById('clases-hoy').innerHTML = '<div class="clase-item" style="background: #FFF8E7"><div class="clase-icon" style="background: var(--mate)">🔢</div><div class="clase-info"><h4>Matemática</h4><p>09:00 - 09:45</p><span class="clase-tag tag-practice">Fracciones</span></div></div><div class="clase-item" style="background: #E8F8E8"><div class="clase-icon" style="background: var(--cien)">🧪</div><div class="clase-info"><h4>Ciencias Naturales</h4><p>10:45 - 11:30</p><span class="clase-tag tag-exam">⚠️ Ensayo APTUS</span></div></div><div class="clase-item" style="background: #F3E8F8"><div class="clase-icon" style="background: var(--alem)">🇩🇪</div><div class="clase-info"><h4>Alemán</h4><p>12:30 - 13:15</p><span class="clase-tag tag-practice">Wiederholung</span></div></div>';
+  document.getElementById('tareas-hogar').innerHTML = '<div class="tarea-item completada" id="tarea-1"><div class="tarea-icon">🛏️</div><div class="tarea-info"><h4 class="tarea-texto">Tender la cama</h4><p>Al levantarse</p></div><button class="tarea-btn tarea-btn-hecho" onclick="toggleTarea(1)">✅ Hecho</button></div><div class="tarea-item" id="tarea-2"><div class="tarea-icon">🧹</div><div class="tarea-info"><h4 class="tarea-texto">Limpiar cuarto (10 min)</h4><p>Después de la tarea</p></div><label class="tarea-btn tarea-btn-foto" style="cursor:pointer">📸 Subir foto<input type="file" accept="image/*" class="input-file-hidden" onchange="subirFoto(2, this)"></label></div>';
+  actualizarEstrellitas([{asignatura:'matematica',total:4},{asignatura:'lenguaje',total:3},{asignatura:'ciencias',total:3},{asignatura:'aleman',total:2},{asignatura:'historia',total:2},{asignatura:'ingles',total:2},{asignatura:'religion',total:1},{asignatura:'arte',total:1},{asignatura:'hogar',total:5}]);
+}
+
+async function cargarPruebas() {
+  try {
+    const pruebas = await fetch(API + '/api/evaluaciones', { headers: authHeaders() }).then(r => r.json());
+    const html = pruebas.map(p => {
+      const dias = Math.ceil((new Date(p.fecha) - new Date()) / (1000 * 60 * 60 * 24));
+      return '<div class="clase-item" style="background: ' + getColorAsignatura(p.asignatura) + '20; ' + (dias <= 3 ? 'border: 2px solid ' + getColorAsignatura(p.asignatura) : '') + '"><div class="clase-icon" style="background: ' + getColorAsignatura(p.asignatura) + '">' + getEmojiAsignatura(p.asignatura) + '</div><div class="clase-info"><h4>' + p.asignatura + ' - ' + p.tipo + '</h4><p>' + formatearFecha(p.fecha) + ' (en ' + dias + ' días)</p><span class="clase-tag ' + (dias <= 3 ? 'tag-exam' : 'tag-practice') + '">' + p.titulo + '</span></div></div>';
+    }).join('');
+    document.getElementById('lista-pruebas').innerHTML = html || '<p style="text-align:center; color:#999; padding:20px">No hay evaluaciones registradas. Sube el cronograma.</p>';
+  } catch (e) {
+    document.getElementById('lista-pruebas').innerHTML = '<div class="clase-item" style="background: #F3E8F8; border: 2px solid #9B59B6"><div class="clase-icon" style="background: var(--alem)">🇩🇪</div><div class="clase-info"><h4>Alemán - Klassenarbeit</h4><p>Viernes 15 de mayo (en 7 días)</p><span class="clase-tag" style="background:#9B59B6; color:white">"Hilfe, ich muss aufräumen"</span></div></div>';
+  }
+}
+
+async function cargarLogros() {
+  try {
+    const estrellitas = await fetch(API + '/api/estrellitas', { headers: authHeaders() }).then(r => r.json());
+    actualizarLogros(estrellitas);
+  } catch (e) {
+    actualizarLogros([{asignatura:'matematica',total:4},{asignatura:'lenguaje',total:3},{asignatura:'ciencias',total:3},{asignatura:'aleman',total:2},{asignatura:'historia',total:2},{asignatura:'ingles',total:2},{asignatura:'religion',total:1},{asignatura:'arte',total:1},{asignatura:'hogar',total:5}]);
+  }
+}
+
+async function completarTarea(id) {
+  if (currentUser.rol !== 'hijo') return;
+  try {
+    const res = await fetch(API + '/api/tareas/completar', {
+      method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tarea_id: id, completada: 1 })
+    }).then(r => r.json());
+    if (res.success) {
+      document.getElementById('tarea-' + id).classList.add('completada');
+      const btn = document.querySelector('#tarea-' + id + ' .tarea-btn');
+      if (btn) btn.outerHTML = '<button class="tarea-btn tarea-btn-hecho" onclick="toggleTarea(' + id + ')">↩️ Deshacer</button>';
+      if (res.estrellita) mostrarCelebracion('+1 ⭐ Hogar');
+    }
+  } catch (e) {
+    document.getElementById('tarea-' + id).classList.add('completada');
+    mostrarCelebracion('+1 ⭐ Hogar (guardado local)');
+  }
+}
+
+async function toggleTarea(id) {
+  if (currentUser.rol !== 'hijo') return;
+  const tarea = document.getElementById('tarea-' + id);
+  if (tarea.classList.contains('completada')) {
+    tarea.classList.remove('completada');
+    const btn = tarea.querySelector('.tarea-btn');
+    const tareaData = JSON.parse(tarea.dataset.tarea || '{}');
+    if (tareaData.requiere_foto) {
+      btn.outerHTML = '<label class="tarea-btn tarea-btn-foto" style="cursor:pointer">📸 Subir foto<input type="file" accept="image/*" class="input-file-hidden" onchange="subirFoto(' + id + ', this)"></label>';
+    } else {
+      btn.outerHTML = '<button class="tarea-btn tarea-btn-hecho" onclick="completarTarea(' + id + ')">✅ Hecho</button>';
+    }
+  } else {
+    completarTarea(id);
+  }
+}
+
+async function subirFoto(id, input) {
+  if (currentUser.rol !== 'hijo') return;
+  const file = input.files[0]; if (!file) return;
+  const formData = new FormData();
+  formData.append('foto', file); formData.append('tarea_id', id); formData.append('completada', 1);
+  try {
+    const res = await fetch(API + '/api/tareas/completar', { method: 'POST', headers: authHeaders(), body: formData }).then(r => r.json());
+    if (res.success) {
+      const tarea = document.getElementById('tarea-' + id);
+      tarea.classList.add('completada');
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.createElement('img');
+        img.src = e.target.result; img.className = 'foto-evidencia';
+        tarea.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+      mostrarCelebracion('📸 ¡Foto enviada a papá/mamá!');
+    }
+  } catch (e) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const tarea = document.getElementById('tarea-' + id);
+      tarea.classList.add('completada');
+      const img = document.createElement('img');
+      img.src = e.target.result; img.className = 'foto-evidencia';
+      tarea.appendChild(img);
+      mostrarCelebracion('📸 Guardado localmente');
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+async function aprobarTareaPadre(tareaId, fecha, aprobada) {
+  if (currentUser.rol !== 'padre') return;
+  try {
+    await fetch(API + '/api/tareas/aprobar', {
+      method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tarea_id: tareaId, fecha, aprobada })
+    });
+    cargarDatosHoy(); cargarPanelPadres();
+  } catch (e) { alert('Error al aprobar'); }
+}
+
+function mostrarNombreArchivo() {
+  const file = document.getElementById('uploadFile').files[0];
+  if (file) document.getElementById('nombre-archivo').textContent = '📄 ' + file.name;
+}
+
+async function subirMaterial() {
+  if (currentUser.rol !== 'padre') { alert('🔒 Solo los padres pueden subir materiales'); return; }
+  const file = document.getElementById('uploadFile').files[0];
+  const asignatura = document.getElementById('uploadAsignatura').value;
+  if (!file) return alert('Selecciona un archivo primero');
+  document.getElementById('upload-text').classList.add('hidden');
+  document.getElementById('upload-loading').classList.remove('hidden');
+  const formData = new FormData();
+  formData.append('material', file); formData.append('asignatura', asignatura); formData.append('titulo', file.name);
+  try {
+    const res = await fetch(API + '/api/materiales/subir', { method: 'POST', headers: authHeaders(), body: formData }).then(r => r.json());
+    document.getElementById('upload-text').classList.remove('hidden');
+    document.getElementById('upload-loading').classList.add('hidden');
+    if (res.success) {
+      alert('✅ ¡Resumen creado! Ahora puedes estudiar ' + getSubjectName(asignatura));
+      document.getElementById('uploadFile').value = ''; document.getElementById('nombre-archivo').textContent = '';
+    }
+  } catch (e) {
+    document.getElementById('upload-text').classList.remove('hidden');
+    document.getElementById('upload-loading').classList.add('hidden');
+    alert('❌ Error al subir');
+  }
+}
+
+function showResumen(subject) {
+  const r = resumenes[subject];
+  const html = '<div class="card"><div style="display:flex; align-items:center; margin-bottom:16px"><div class="clase-icon" style="background: ' + r.color + '; margin-right:12px">' + getEmojiAsignatura(subject) + '</div><div><h3 style="font-size:1.1rem">' + r.titulo + '</h3><p style="font-size:0.8rem; color:var(--text2)">' + r.subtitulo + '</p></div></div><div class="resumen-box" style="border-left-color:' + r.color + '; background:' + r.bg + '"><h4 style="color:' + r.color + '">📋 RESUMEN</h4><ul>' + r.puntos.map(p => '<li>' + p + '</li>').join('') + '</ul></div><button class="btn-primary" style="background:' + r.color + '; color:white; margin-top:8px" onclick="startQuiz('' + subject + '')">🎮 HACER QUIZ DE 5 PREGUNTAS</button></div>';
+  document.querySelectorAll('[id^="resumen-"]').forEach(el => el.classList.add('hidden'));
+  const container = document.getElementById('resumen-' + subject);
+  container.innerHTML = html; container.classList.remove('hidden');
+  document.getElementById('quiz-container').classList.add('hidden');
+  window.scrollTo(0, container.offsetTop - 100);
+}
+
+function startQuiz(subject) {
+  currentQuiz = quizzes[subject]; currentQuestion = 0; correctAnswers = 0; currentSubject = subject;
+  document.getElementById('quiz-container').classList.remove('hidden');
+  showQuestion();
+  window.scrollTo(0, document.getElementById('quiz-container').offsetTop - 100);
+}
+
+function showQuestion() {
+  const q = currentQuiz[currentQuestion];
+  const html = '<div style="margin-bottom:12px; font-size:0.8rem; color:#999; text-align:center">Pregunta ' + (currentQuestion + 1) + ' de ' + currentQuiz.length + '</div><div class="quiz-question"><h3>' + q.q + '</h3><div class="quiz-options">' + q.options.map((opt, i) => '<button class="quiz-btn" onclick="checkAnswer(' + i + ', this)">' + opt + '</button>').join('') + '</div></div><div id="explanation-box" style="display:none; margin-top:16px; padding:16px; background:#f0f0f0; border-radius:12px; font-size:0.9rem"><div id="explanation-text"></div><button class="btn-primary" style="margin-top:12px; background:#667eea; color:white" onclick="nextQuestion()">' + (currentQuestion < currentQuiz.length - 1 ? 'SIGUIENTE ➡️' : 'VER RESULTADO 🏆') + '</button></div>';
+  document.getElementById('quiz-content').innerHTML = html;
+}
+
+function checkAnswer(selected, btn) {
+  const q = currentQuiz[currentQuestion];
+  const buttons = document.querySelectorAll('.quiz-btn');
+  buttons.forEach((b, i) => { b.disabled = true; if (i === q.correct) b.classList.add('correct'); });
+  if (selected === q.correct) {
+    correctAnswers++; btn.classList.add('correct');
+    document.getElementById('explanation-text').innerHTML = '<div style="color:#2d6a2d; font-weight:700; font-size:1.1rem; margin-bottom:8px">✅ ¡CORRECTO!</div>' + q.explanation;
+  } else {
+    btn.classList.add('wrong');
+    document.getElementById('explanation-text').innerHTML = '<div style="color:#c0392b; font-weight:700; font-size:1.1rem; margin-bottom:8px">❌ Casi...</div>La respuesta correcta es: <b>' + q.options[q.correct] + '</b><br><br>' + q.explanation;
+  }
+  document.getElementById('explanation-box').style.display = 'block';
+}
+
+async function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion < currentQuiz.length) { showQuestion(); } else { showResult(); }
+}
+
+async function showResult() {
+  const percentage = (correctAnswers / currentQuiz.length) * 100;
+  let message = '', emoji = '';
+  if (percentage === 100) { message = '¡PERFECTO! Dominaste este tema'; emoji = '🌟🌟🌟'; }
+  else if (percentage >= 60) { message = '¡Muy bien! Vas por buen camino'; emoji = '⭐⭐'; }
+  else { message = '¡Vamos a practicar un poco más!'; emoji = '⭐'; }
+  if (currentUser.rol === 'hijo') {
+    try {
+      await fetch(API + '/api/quiz/resultado', {
+        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asignatura: currentSubject, correctas: correctAnswers, total: currentQuiz.length })
+      });
+    } catch (e) {}
+  }
+  const html = '<div class="center-text"><div class="big-emoji">' + emoji + '</div><h2 style="margin-bottom:8px">' + correctAnswers + '/' + currentQuiz.length + ' correctas</h2><p style="color:var(--text2); margin-bottom:20px">' + message + '</p><div class="success-msg">🎉 ¡Ganaste estrellitas para ' + getSubjectName(currentSubject) + '!</div><button class="btn-primary" style="background:#667eea; color:white; margin-top:12px" onclick="resetQuiz()">🔁 VOLVER A ESTUDIAR</button></div>';
+  document.getElementById('quiz-content').innerHTML = html;
+}
+
+function resetQuiz() {
+  document.getElementById('quiz-container').classList.add('hidden');
+  document.querySelectorAll('[id^="resumen-"]').forEach(el => el.classList.add('hidden'));
+  window.scrollTo(0, 0);
+}
+
+async function togglePadresPanel() {
+  const panel = document.getElementById('padresPanel');
+  panel.classList.toggle('active');
+  if (panel.classList.contains('active')) cargarPanelPadres();
+}
+
+async function cargarPanelPadres() {
+  if (currentUser.rol !== 'padre') return;
+  try {
+    const data = await fetch(API + '/api/padres/dashboard', { headers: authHeaders() }).then(r => r.json());
+    document.getElementById('padres-stats').innerHTML = '<div class="stats-grid"><div class="stat-box"><div class="stat-number">' + (data.quizzes_semana || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Quizzes esta semana</div></div><div class="stat-box"><div class="stat-number">' + (data.tareas_semana || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Tareas completadas</div></div><div class="stat-box"><div class="stat-number">' + data.estrellitas.reduce((a, b) => a + (b.total || 0), 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Estrellitas totales</div></div><div class="stat-box"><div class="stat-number">' + (data.estrellitas.find(e => e.asignatura === 'hogar')?.total || 0) + '</div><div style="font-size:0.75rem; color:var(--text2)">Del hogar</div></div></div>';
+    const pendientes = data.evidencias.filter(e => !e.aprobada);
+    document.getElementById('padres-evidencias').innerHTML = pendientes.length ? pendientes.map(e => '<div class="padres-evidencia"><div style="width:60px; height:60px; background:#FFE4EC; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem">📸</div><div class="info"><div style="font-weight:700">Tarea #' + e.tarea_id + '</div><div style="font-size:0.75rem; color:var(--text2)">' + e.fecha + '</div></div><div class="btn-aprobacion"><button class="btn-aprobar" onclick="aprobarTareaPadre(' + e.tarea_id + ', '' + e.fecha + '', 1)">✅ Aprobar</button><button class="btn-rechazar" onclick="aprobarTareaPadre(' + e.tarea_id + ', '' + e.fecha + '', 0)">❌ Rechazar</button></div></div>').join('') : '<p style="color:#999; font-size:0.85rem">No hay evidencias pendientes 🎉</p>';
+    document.getElementById('padres-actividad').innerHTML = data.actividad.slice(0, 10).map(a => '<span>' + new Date(a.created_at).toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'}) + '</span> ' + (a.tipo === 'quiz' ? '🎮' : a.tipo === 'tarea' ? '🏠' : '📖') + ' ' + a.descripcion + '<br>').join('');
+  } catch (e) {
+    document.getElementById('padres-stats').innerHTML = '<p style="color:#999">Conecta al servidor para ver estadísticas.</p>';
+    document.getElementById('padres-evidencias').innerHTML = '<p style="color:#999; font-size:0.85rem">Modo offline.</p>';
+    document.getElementById('padres-actividad').innerHTML = '<span>Hoy 8:15</span> 🏠 Tarea: Tender la cama ✅<br><span>Hoy 7:50</span> 🎮 Quiz Ciencias: 4/5<br>';
+  }
+}
+
+function getEmojiAsignatura(a) {
+  const map = { matematica: '🔢', lengua: '📖', lenguaje: '📖', ciencias: '🧪', historia: '🏛️', ingles: '🇬🇧', alem: '🇩🇪', aleman: '🇩🇪', religion: '✝️', arte: '🎨', edfis: '🏃', tecnologia: '💻', hogar: '🏠' };
+  return map[a?.toLowerCase()] || '📚';
+}
+
+function getColorAsignatura(a) {
+  const map = { matematica: '#FFD93D', lengua: '#4D96FF', lenguaje: '#4D96FF', ciencias: '#6BCB77', historia: '#AA7C55', ingles: '#FF6B6B', alem: '#9B59B6', aleman: '#9B59B6', religion: '#ECF0F1', arte: '#FF9F45', edfis: '#2C3E50', tecnologia: '#95A5A6', hogar: '#FF6B9D' };
+  return map[a?.toLowerCase()] || '#667eea';
+}
+
+function getSubjectName(s) {
+  const map = { aleman: 'Alemán', ciencias: 'Ciencias', matematica: 'Matemática', lengua: 'Lenguaje', lenguaje: 'Lenguaje', historia: 'Historia', ingles: 'Inglés', hogar: 'Hogar' };
+  return map[s] || s;
+}
+
+function formatearFecha(fecha) {
+  const d = new Date(fecha);
+  return d.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+function actualizarEstrellitas(estrellitas) {
+  const grid = document.getElementById('estrellitas-grid');
+  const asignaturas = ['matematica', 'lenguaje', 'ciencias', 'aleman', 'historia', 'ingles', 'religion', 'arte', 'hogar'];
+  grid.innerHTML = asignaturas.map(a => {
+    const e = estrellitas.find(x => x.asignatura === a);
+    const stars = e ? '⭐'.repeat(Math.min(e.total, 5)) : '';
+    return '<div class="logro-item"><div class="logro-emoji">' + getEmojiAsignatura(a) + '</div><div class="logro-stars">' + stars + '</div><div class="logro-name">' + getSubjectName(a) + '</div></div>';
+  }).join('');
+  const total = estrellitas.reduce((a, b) => a + (b.total || 0), 0);
+  const metaTexto = document.getElementById('meta-texto');
+  if (metaTexto) metaTexto.innerHTML = '🏆 ' + total + '/20 estrellitas = 🍕 Pizza (' + (total >= 20 ? '¡META LOGRADA!' : 'faltan ' + (20 - total)) + ')';
+}
+
+function actualizarLogros(estrellitas) {
+  actualizarEstrellitas(estrellitas);
+  document.getElementById('logros-hogar').innerHTML = '<div style="display:flex; flex-direction:column; gap:10px"><div style="background:#FFE4EC; padding:14px; border-radius:12px; display:flex; align-items:center; gap:12px"><span style="font-size:2rem">🔥</span><div><div style="font-weight:700">Racha de tareas</div><div style="font-size:0.85rem; color:var(--text2)">5 días seguidos completando tareas</div></div></div><div style="background:#E8F8E8; padding:14px; border-radius:12px; display:flex; align-items:center; gap:12px"><span style="font-size:2rem">🏆</span><div><div style="font-weight:700">Tareas esta semana</div><div style="font-size:0.85rem; color:var(--text2)">23 de 25 completadas (92%)</div></div></div></div>';
+  document.getElementById('logros-especiales').innerHTML = '<div style="display:flex; flex-direction:column; gap:10px"><div style="background:#E8F0FF; padding:14px; border-radius:12px; display:flex; align-items:center; gap:12px"><span style="font-size:2rem">🧠</span><div><div style="font-weight:700">Quiz perfecto</div><div style="font-size:0.85rem; color:var(--text2)">5/5 en Ciencias el miércoles</div></div></div><div style="background:#F3E8F8; padding:14px; border-radius:12px; display:flex; align-items:center; gap:12px"><span style="font-size:2rem">📚</span><div><div style="font-weight:700">Estudiosa</div><div style="font-size:0.85rem; color:var(--text2)">12 quizzes completados este mes</div></div></div></div>';
+}
+
+function mostrarCelebracion(texto) {
+  const overlay = document.createElement('div'); overlay.className = 'overlay';
+  const div = document.createElement('div'); div.className = 'celebracion';
+  div.innerHTML = '<div style="font-size:3rem; margin-bottom:12px">🎉</div><div style="font-size:1.2rem; font-weight:800; color:#667eea">' + texto + '</div>';
+  document.body.appendChild(overlay); document.body.appendChild(div);
+  setTimeout(() => { overlay.remove(); div.remove(); }, 2000);
+}
+
+document.addEventListener('DOMContentLoaded', () => { checkAuth(); });
+</script>
+</body>
+</html>
