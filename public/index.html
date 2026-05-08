@@ -27,109 +27,133 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
 
 .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
 .header h1 { font-size: 1.3rem; font-weight: 800; }
-.user-badge { position: fixed; top: 70px; left: 10px; z-index: 200; background: white; border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 6px; }
-.user-badge .rol { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; }
+.header p { font-size: 0.8rem; opacity: 0.8; margin-top: 4px; }
+
+.user-badge { position: fixed; top: 75px; left: 10px; z-index: 200; background: white; border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; }
+.user-badge .rol { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; text-transform: uppercase; }
 .user-badge .rol.padre { background: #E8F0FF; color: #667eea; }
 .user-badge .rol.hijo { background: #E8F8E8; color: #27ae60; }
-.logout-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 0.7rem; font-weight: 700; }
+.logout-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: 700; font-size: 0.7rem; margin-left: 5px; }
 
 .screen { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
 .screen.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-.card-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text2); margin-bottom: 12px; letter-spacing: 1px; }
+.card { background: var(--card); border-radius: 18px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.card-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text2); margin-bottom: 14px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
 
-.alert-exam { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%); color: white; border-radius: 16px; padding: 16px; margin-bottom: 16px; text-align: center; }
-.btn-primary { background: white; color: #ee5a5a; border: none; padding: 12px 24px; border-radius: 25px; font-weight: 800; font-size: 0.9rem; margin-top: 12px; cursor: pointer; width: 100%; }
+.alert-exam { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%); color: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center; box-shadow: 0 10px 25px rgba(238, 90, 90, 0.3); }
+.alert-exam h3 { font-size: 1.2rem; margin-bottom: 4px; }
+.btn-primary { background: white; color: #ee5a5a; border: none; padding: 14px 28px; border-radius: 30px; font-weight: 800; font-size: 0.9rem; margin-top: 14px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-.clase-item { display: flex; align-items: center; padding: 12px; border-radius: 12px; margin-bottom: 8px; }
-.clase-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 14px; }
-.clase-info h4 { font-size: 1rem; font-weight: 700; }
-.clase-tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-top: 4px; }
+.clase-item { display: flex; align-items: center; padding: 14px; border-radius: 16px; margin-bottom: 10px; transition: transform 0.2s; }
+.clase-item:active { transform: scale(0.98); }
+.clase-icon { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-right: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+.clase-info { flex: 1; }
+.clase-info h4 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
+.clase-info p { font-size: 0.8rem; color: var(--text2); }
 
-.tarea-item { display: flex; align-items: center; padding: 14px; border-radius: 14px; margin-bottom: 10px; background: white; border: 2px solid #FFE4EC; }
-.tarea-item.completada { border-color: #6BCB77; background: #F0FFF0; opacity: 0.8; }
-.tarea-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-right: 12px; }
-.tarea-btn { padding: 10px 16px; border-radius: 20px; border: none; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
-.tarea-btn-foto { background: #FF6B9D; color: white; }
+.tarea-item { display: flex; align-items: center; padding: 16px; border-radius: 18px; margin-bottom: 12px; background: white; border: 2px solid #f0f0f0; }
+.tarea-item.completada { border-color: #6BCB77; background: #F0FFF0; }
+.tarea-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 14px; background: #f9f9f9; }
+.tarea-btn { padding: 10px 18px; border-radius: 25px; border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
 .tarea-btn-hecho { background: #6BCB77; color: white; }
+.tarea-btn-undo { background: #eee; color: #777; }
 
-.padres-panel { display: none; background: #f0f0f0; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
+.stat-box { background: white; padding: 14px; border-radius: 16px; text-align: center; border: 1px solid #eee; }
+.stat-number { font-size: 1.4rem; font-weight: 800; color: #667eea; }
+
+.padres-panel { display: none; background: #f1f3f9; border-radius: 20px; padding: 20px; margin: 15px; border: 2px dashed #667eea; }
 .padres-panel.active { display: block; }
-.padres-toggle { position: fixed; top: 70px; right: 10px; z-index: 200; background: white; border: 2px solid #667eea; border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; font-weight: 700; color: #667eea; cursor: pointer; }
+.padres-toggle { position: fixed; top: 75px; right: 10px; z-index: 200; background: #667eea; border: none; border-radius: 20px; padding: 8px 16px; font-size: 0.75rem; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4); }
 
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #eee; padding: 8px 0; z-index: 100; }
-.bottom-btn { flex: 1; text-align: center; border: none; background: none; font-size: 0.7rem; color: var(--text2); cursor: pointer; }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #eee; padding: 10px 0; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
+.bottom-btn { flex: 1; text-align: center; border: none; background: none; font-size: 0.75rem; color: #95A5A6; cursor: pointer; font-weight: 600; }
 .bottom-btn.active { color: #667eea; }
-.bottom-btn .icon { font-size: 1.4rem; display: block; }
+.bottom-btn .icon { font-size: 1.5rem; display: block; margin-bottom: 2px; }
 
 .hidden { display: none !important; }
-.loading { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
-    <div class="login-emoji">📚</div>
+    <div class="login-emoji">🏫</div>
     <div class="login-title">Mi Plan de Estudio</div>
-    <div class="login-sub">6° SA - Santa Úrsula de Maipú</div>
-    <div class="login-error" id="loginError">❌ Email o contraseña incorrectos</div>
-    <input type="email" class="login-input" id="loginEmail" placeholder="📧 Email" value="hija@familia.cl">
+    <div class="login-sub">Acceso Seguro para la Familia</div>
+    <div class="login-error" id="loginError">❌ Credenciales incorrectas</div>
+    <input type="email" class="login-input" id="loginEmail" placeholder="📧 Correo" value="hija@familia.cl">
     <input type="password" class="login-input" id="loginPassword" placeholder="🔒 Contraseña" value="hija2026">
-    <button class="login-btn" onclick="doLogin()">Ingresar 🚀</button>
+    <button class="login-btn" onclick="doLogin()">Entrar al Panel 🚀</button>
   </div>
 </div>
 
 <div id="appContainer" style="display:none">
-  <div class="header"><h1>📚 Mi Plan de Estudio</h1></div>
+  <div class="header">
+    <h1>📚 Mi Plan de Estudio</h1>
+    <p>6° SA - Santa Úrsula de Maipú</p>
+  </div>
   
-  <div class="user-badge" id="userBadge">
+  <div class="user-badge">
     <span id="userName">Usuario</span>
-    <span class="rol" id="userRol">hijo</span>
-    <button class="logout-btn" onclick="doLogout()">🚪 Salir</button>
+    <span class="rol" id="userRol">Rol</span>
+    <button class="logout-btn" onclick="doLogout()">Salir 🚪</button>
   </div>
 
-  <button class="padres-toggle hidden" id="btnPanelPadres" onclick="togglePadresPanel()">👨‍👩‍👧 Panel Padres</button>
+  <button class="padres-toggle hidden" id="btnPanelPadres" onclick="togglePadresPanel()">⚙️ Panel Control</button>
 
   <div class="padres-panel" id="padresPanel">
-    <h4>📊 Control Parental</h4>
-    <div class="card" style="border: 1px solid #667eea; margin: 10px 0;">
-      <div class="card-title" style="color:#667eea">📅 PLAN SEMANAL (PDF)</div>
+    <h3 style="margin-bottom:15px">🛠️ Herramientas de Padres</h3>
+    <div class="card" style="border-left: 5px solid #667eea">
+      <div class="card-title">📅 CARGAR PLAN SEMANAL</div>
       <input type="date" id="semana_inicio" class="login-input" style="padding:8px">
-      <input type="file" id="filePlan" accept=".pdf">
-      <button class="login-btn" onclick="subirPlan()">🚀 Procesar</button>
+      <input type="file" id="filePlan" accept=".pdf" style="margin-bottom:10px">
+      <button class="login-btn" onclick="subirPlan()">Extraer Horario con IA 🤖</button>
     </div>
-    <div class="card" style="border: 1px solid #FF6B6B; margin: 10px 0;">
-      <div class="card-title" style="color:#FF6B6B">📝 CRONOGRAMA (PDF)</div>
-      <input type="file" id="fileCronograma" accept=".pdf">
-      <button class="login-btn" onclick="subirCronograma()" style="background:#FF6B6B">🚀 Cargar Todo</button>
+    <div class="card" style="border-left: 5px solid #FF6B6B">
+      <div class="card-title">📝 CARGAR CRONOGRAMA PRUEBAS</div>
+      <input type="file" id="fileCronograma" accept=".pdf" style="margin-bottom:10px">
+      <button class="login-btn" onclick="subirCronograma()" style="background:#FF6B6B">Cargar Todo el Mes 🚀</button>
     </div>
     <div id="padres-stats"></div>
     <div id="padres-evidencias"></div>
   </div>
 
+  <!-- PANTALLA HOY -->
   <div class="screen active" id="screen-hoy">
-    <div class="alert-exam" id="alerta-prueba"><h3>Cargando...</h3></div>
-    <div class="card"><div class="card-title">📅 Clases de hoy</div><div id="clases-hoy">Cargando...</div></div>
-    <div class="card"><div class="card-title">🏠 Tareas del hogar</div><div id="tareas-hogar">Cargando...</div></div>
-    <div class="card"><div class="card-title">⭐ Mis Estrellitas</div><div id="estrellitas-grid"></div><div id="meta-texto"></div></div>
+    <div class="alert-exam" id="alerta-prueba"><h3>¡Cargando calendario! ⏳</h3></div>
+    <div class="card"><div class="card-title">📖 Clases para Hoy</div><div id="clases-hoy">Sin clases registradas.</div></div>
+    <div class="card"><div class="card-title">🏠 Tareas del Hogar</div><div id="tareas-hogar">No hay tareas pendientes.</div></div>
+    <div class="card">
+      <div class="card-title">⭐ Mis Estrellitas</div>
+      <div id="estrellitas-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px"></div>
+      <div id="meta-texto" style="font-weight:800; color:#27ae60">🎯 Meta: 0/20 estrellitas</div>
+    </div>
   </div>
 
-  <div class="screen" id="screen-pruebas"><div class="card"><div class="card-title">📅 PRÓXIMAS PRUEBAS</div><div id="lista-pruebas"></div></div></div>
+  <!-- PANTALLA PRUEBAS -->
+  <div class="screen" id="screen-pruebas">
+    <div class="card"><div class="card-title">📅 Próximas Evaluaciones</div><div id="lista-pruebas"></div></div>
+  </div>
+
+  <!-- PANTALLA ESTUDIAR -->
   <div class="screen" id="screen-estudiar">
-    <div class="card"><div class="card-title">📖 REPASAR</div><div id="lista-materias"></div></div>
+    <div class="card"><div class="card-title">📖 Materias Disponibles</div><div id="lista-materias"></div></div>
     <div id="quiz-container" class="hidden"><div class="card" id="quiz-content"></div></div>
   </div>
-  <div class="screen" id="screen-logros"><div class="card"><div class="card-title">⭐ LOGROS</div><div id="logros-grid"></div></div></div>
+
+  <!-- PANTALLA LOGROS -->
+  <div class="screen" id="screen-logros">
+    <div class="card"><div class="card-title">🏆 Galería de Logros</div><div id="logros-grid" class="stats-grid"></div></div>
+  </div>
 
   <div class="bottom-nav">
-    <button class="bottom-btn active" onclick="showScreen('hoy')"><span class="icon">📅</span>Hoy</button>
-    <button class="bottom-btn" onclick="showScreen('pruebas')"><span class="icon">📋</span>Pruebas</button>
-    <button class="bottom-btn" onclick="showScreen('estudiar')"><span class="icon">📖</span>Estudiar</button>
-    <button class="bottom-btn" onclick="showScreen('logros')"><span class="icon">⭐</span>Logros</button>
+    <button class="bottom-btn active" id="nav-hoy" onclick="showScreen('hoy')"><span class="icon">🏠</span>Hoy</button>
+    <button class="bottom-btn" id="nav-pruebas" onclick="showScreen('pruebas')"><span class="icon">📋</span>Pruebas</button>
+    <button class="bottom-btn" id="nav-estudiar" onclick="showScreen('estudiar')"><span class="icon">📚</span>Estudiar</button>
+    <button class="bottom-btn" id="nav-logros" onclick="showScreen('logros')"><span class="icon">⭐</span>Logros</button>
   </div>
 </div>
 
@@ -139,8 +163,8 @@ let currentUser = null;
 let authToken = localStorage.getItem('token');
 
 function authHeaders() { return { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' }; }
-function authHeadersFile() { return { 'Authorization': 'Bearer ' + authToken }; }
 
+// INICIO Y AUTENTICACIÓN
 async function checkAuth() {
   if (!authToken) { showLogin(); return; }
   try {
@@ -151,16 +175,21 @@ async function checkAuth() {
   } catch (e) { doLogout(); }
 }
 
-function showLogin() { document.getElementById('loginScreen').classList.remove('hidden'); document.getElementById('appContainer').style.display = 'none'; }
+function showLogin() { 
+  document.getElementById('loginScreen').classList.remove('hidden'); 
+  document.getElementById('appContainer').style.display = 'none'; 
+}
+
 function showApp() {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('appContainer').style.display = 'block';
   document.getElementById('userName').textContent = currentUser.nombre;
-  document.getElementById('userRol').textContent = currentUser.rol === 'padre' ? '👨‍👩‍👧 Padre' : '👧 Hijo/a';
-  document.getElementById('userRol').className = 'rol ' + currentUser.rol;
+  const rolEl = document.getElementById('userRol');
+  rolEl.textContent = currentUser.rol === 'padre' ? 'Padre' : 'Hija';
+  rolEl.className = 'rol ' + currentUser.rol;
+  
   if (currentUser.rol === 'padre') {
     document.getElementById('btnPanelPadres').classList.remove('hidden');
-    document.getElementById('padresPanel').classList.add('active');
     cargarPanelPadres();
   }
   cargarDatosHoy();
@@ -170,49 +199,125 @@ async function doLogin() {
   const email = document.getElementById('loginEmail').value;
   const password = document.getElementById('loginPassword').value;
   try {
-    const res = await fetch(API + '/api/auth/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
+    const res = await fetch(API + '/api/auth/login', { 
+      method: 'POST', 
+      headers: {'Content-Type':'application/json'}, 
+      body: JSON.stringify({email, password}) 
+    });
     if (!res.ok) throw new Error();
     const data = await res.json();
-    authToken = data.token; localStorage.setItem('token', authToken);
-    currentUser = data.user; showApp();
-  } catch (e) { document.getElementById('loginError').style.display = 'block'; }
+    authToken = data.token; 
+    localStorage.setItem('token', authToken);
+    currentUser = data.user; 
+    showApp();
+  } catch (e) { 
+    document.getElementById('loginError').style.display = 'block'; 
+  }
 }
 
-function doLogout() { localStorage.removeItem('token'); authToken = null; showLogin(); }
+function doLogout() { 
+  localStorage.removeItem('token'); 
+  authToken = null; 
+  showLogin(); 
+}
 
+// NAVEGACIÓN Y CARGA DE PANTALLAS
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.querySelectorAll('.bottom-btn').forEach(b => b.classList.remove('active'));
-  if (event) event.currentTarget.classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  
   if (name === 'hoy') cargarDatosHoy();
+  if (name === 'pruebas') cargarPruebas();
+  if (name === 'estudiar') cargarMaterias();
+  if (name === 'logros') cargarLogros();
 }
 
+// CARGA DE DATOS - HOY
 async function cargarDatosHoy() {
   try {
+    // 1. Próxima Prueba
     const resEval = await fetch(API + '/api/evaluaciones', { headers: authHeaders() });
     const pruebas = await resEval.json();
-    if (pruebas.length) {
+    if (Array.isArray(pruebas) && pruebas.length) {
       const p = pruebas[0];
-      document.getElementById('alerta-prueba').innerHTML = `<h3>Próxima: ${p.asignatura}</h3><p>${p.fecha} - ${p.titulo}</p>`;
+      const dias = Math.ceil((new Date(p.fecha) - new Date()) / (1000 * 60 * 60 * 24));
+      document.getElementById('alerta-prueba').innerHTML = `<h3>Próxima: ${p.asignatura}</h3><p>${p.fecha} (en ${dias} días)<br>${p.titulo}</p><button class="btn-primary" onclick="showScreen('pruebas')">EMPEZAR REPASO 📖</button>`;
     } else {
-      document.getElementById('alerta-prueba').innerHTML = `<h3>¡Todo al día! 🎉</h3>`;
+      document.getElementById('alerta-prueba').innerHTML = `<h3>¡Todo al día! 🎉</h3><p>No tienes pruebas próximas registradas.</p>`;
     }
 
+    // 2. Clases Hoy
     const resPlan = await fetch(API + '/api/plan/hoy', { headers: authHeaders() });
     const clases = await resPlan.json();
-    document.getElementById('clases-hoy').innerHTML = clases.map(c => `<div class="clase-item" style="background:${getColorAsignatura(c.asignatura)}20"><div class="clase-icon" style="background:${getColorAsignatura(c.asignatura)}">${getEmojiAsignatura(c.asignatura)}</div><div class="clase-info"><h4>${c.asignatura}</h4><p>${c.hora_inicio}</p></div></div>`).join('');
+    document.getElementById('clases-hoy').innerHTML = Array.isArray(clases) && clases.length ? 
+      clases.map(c => `<div class="clase-item" style="background:${getColorAsignatura(c.asignatura)}20">
+        <div class="clase-icon" style="background:${getColorAsignatura(c.asignatura)}">${getEmojiAsignatura(c.asignatura)}</div>
+        <div class="clase-info"><h4>${c.asignatura}</h4><p>${c.hora_inicio} - ${c.hora_fin}</p></div>
+      </div>`).join('') : '<p style="color:#999; text-align:center">Sin clases para hoy.</p>';
 
+    // 3. Tareas Hogar
     const resTareas = await fetch(API + '/api/tareas/hoy', { headers: authHeaders() });
     const tareas = await resTareas.json();
-    document.getElementById('tareas-hogar').innerHTML = tareas.map(t => `<div class="tarea-item ${t.completada?'completada':''}"><div class="tarea-icon">${t.emoji}</div><div style="flex:1"><h4>${t.titulo}</h4></div><button class="tarea-btn tarea-btn-hecho" onclick="completarTarea(${t.id})">${t.completada?'✅':'Hecho'}</button></div>`).join('');
+    document.getElementById('tareas-hogar').innerHTML = Array.isArray(tareas) && tareas.length ? 
+      tareas.map(t => `<div class="tarea-item ${t.completada?'completada':''}">
+        <div class="tarea-icon">${t.emoji || '🏠'}</div>
+        <div style="flex:1"><h4>${t.titulo}</h4><p>${t.horario}</p></div>
+        <button class="tarea-btn ${t.completada?'tarea-btn-undo':'tarea-btn-hecho'}" onclick="completarTarea(${t.id})">
+          ${t.completada?'✅':'Hecho'}
+        </button>
+      </div>`).join('') : '<p style="color:#999; text-align:center">Sin tareas asignadas.</p>';
 
+    // 4. Estrellitas
     const resEst = await fetch(API + '/api/estrellitas', { headers: authHeaders() });
     const estrellitas = await resEst.json();
     actualizarEstrellitas(estrellitas);
-  } catch (e) { console.error(e); }
+
+  } catch (e) { console.error("Error cargando pantalla Hoy:", e); }
 }
 
+// CARGA DE PRUEBAS (PANTALLA 2)
+async function cargarPruebas() {
+  try {
+    const res = await fetch(API + '/api/evaluaciones', { headers: authHeaders() });
+    const data = await res.json();
+    document.getElementById('lista-pruebas').innerHTML = data.map(p => `
+      <div class="clase-item" style="border-left: 4px solid ${getColorAsignatura(p.asignatura)}">
+        <div class="clase-icon" style="background:${getColorAsignatura(p.asignatura)}">${getEmojiAsignatura(p.asignatura)}</div>
+        <div class="clase-info"><h4>${p.asignatura}</h4><p>${p.fecha} - ${p.titulo}</p></div>
+      </div>
+    `).join('') || '<p style="text-align:center; padding:20px">No hay pruebas agendadas.</p>';
+  } catch(e) { console.error(e); }
+}
+
+// CARGA DE LOGROS (PANTALLA 4)
+async function cargarLogros() {
+  try {
+    const res = await fetch(API + '/api/estrellitas', { headers: authHeaders() });
+    const data = await res.json();
+    document.getElementById('logros-grid').innerHTML = data.map(e => `
+      <div class="stat-box">
+        <div style="font-size:2rem">${getEmojiAsignatura(e.asignatura)}</div>
+        <div class="stat-number">★ ${e.total}</div>
+        <div style="font-size:0.7rem">${e.asignatura}</div>
+      </div>
+    `).join('');
+  } catch(e) { console.error(e); }
+}
+
+// CARGA DE MATERIAS PARA ESTUDIAR (PANTALLA 3)
+function cargarMaterias() {
+  const materias = ['Matemática', 'Lenguaje', 'Ciencias Naturales', 'Historia', 'Inglés', 'Alemán'];
+  document.getElementById('lista-materias').innerHTML = materias.map(m => `
+    <div class="clase-item" onclick="alert('Funcionalidad de resumen en desarrollo')">
+      <div class="clase-icon" style="background:${getColorAsignatura(m)}">${getEmojiAsignatura(m)}</div>
+      <div class="clase-info"><h4>${m}</h4><p>Toca para ver resúmenes y quizzes</p></div>
+    </div>
+  `).join('');
+}
+
+// FUNCIONES AUXILIARES
 function getEmojiAsignatura(a) {
   const map = { matematica: '🔢', lenguaje: '📖', ciencias: '🧪', historia: '🏛️', ingles: '🇬🇧', aleman: '🇩🇪', hogar: '🏠' };
   return map[a?.toLowerCase()] || '📚';
@@ -221,44 +326,76 @@ function getColorAsignatura(a) {
   const map = { matematica: '#FFD93D', lenguaje: '#4D96FF', ciencias: '#6BCB77', historia: '#AA7C55', ingles: '#FF6B6B', aleman: '#9B59B6', hogar: '#FF6B9D' };
   return map[a?.toLowerCase()] || '#95A5A6';
 }
-function formatearFecha(f) { return new Date(f).toLocaleDateString('es-CL'); }
-
 function actualizarEstrellitas(data) {
+  const list = Array.isArray(data) ? data : [];
   const grid = document.getElementById('estrellitas-grid');
-  grid.innerHTML = data.map(e => `<span>${getEmojiAsignatura(e.asignatura)} ★${e.total}</span>`).join(' ');
-  const total = data.reduce((a, b) => a + b.total, 0);
-  document.getElementById('meta-texto').textContent = `🎯 Meta: ${total}/20 estrellitas`;
+  grid.innerHTML = list.map(e => `<span title="${e.asignatura}">${getEmojiAsignatura(e.asignatura)} ★${e.total}</span>`).join(' ');
+  const total = list.reduce((a, b) => a + b.total, 0);
+  document.getElementById('meta-texto').textContent = `🎯 Meta: ${total}/20 estrellitas = 🍕 Pizza`;
 }
 
+// ACCIONES DE HIJA
 async function completarTarea(id) {
-  await fetch(API + '/api/tareas/completar', { method: 'POST', headers: authHeaders(), body: JSON.stringify({tarea_id: id, completada: 1}) });
-  cargarDatosHoy();
+  try {
+    await fetch(API + '/api/tareas/completar', { 
+      method: 'POST', 
+      headers: authHeaders(), 
+      body: JSON.stringify({tarea_id: id, completada: 1}) 
+    });
+    cargarDatosHoy();
+  } catch (e) { console.error(e); }
 }
 
+// ACCIONES DE PADRES
 function togglePadresPanel() { document.getElementById('padresPanel').classList.toggle('active'); }
 
 async function cargarPanelPadres() {
-  const data = await fetch(API + '/api/padres/dashboard', { headers: authHeaders() }).then(r => r.json());
-  document.getElementById('padres-stats').innerHTML = `Total Estrellitas: ${data.estrellitas.reduce((a,b)=>a+b.total,0)}`;
+  try {
+    const res = await fetch(API + '/api/padres/dashboard', { headers: authHeaders() });
+    const data = await res.json();
+    const total = data.estrellitas.reduce((a,b)=>a+b.total,0);
+    document.getElementById('padres-stats').innerHTML = `
+      <div class="stat-box" style="margin-top:10px">
+        <div class="stat-number">${total}</div>
+        <div>Estrellitas Totales Acumuladas</div>
+      </div>`;
+  } catch(e) { console.error(e); }
 }
 
 async function subirPlan() {
   const file = document.getElementById('filePlan').files[0];
   const inicio = document.getElementById('semana_inicio').value;
+  if(!file || !inicio) return alert('Selecciona archivo y fecha');
   const formData = new FormData();
   formData.append('plan', file); formData.append('semana_inicio', inicio);
-  await fetch(API + '/api/plan/subir', { method: 'POST', headers: {'Authorization':'Bearer ' + authToken}, body: formData });
-  alert('Plan cargado'); cargarDatosHoy();
+  try {
+    await fetch(API + '/api/plan/subir', { 
+      method: 'POST', 
+      headers: {'Authorization':'Bearer ' + authToken}, 
+      body: formData 
+    });
+    alert('✅ Plan cargado correctamente'); 
+    cargarDatosHoy();
+  } catch(e) { alert('Error al subir plan'); }
 }
 
 async function subirCronograma() {
   const file = document.getElementById('fileCronograma').files[0];
+  if(!file) return alert('Selecciona el PDF');
   const formData = new FormData();
   formData.append('archivo', file);
-  await fetch(API + '/api/evaluaciones/subir', { method: 'POST', headers: {'Authorization':'Bearer ' + authToken}, body: formData });
-  alert('Cronograma cargado'); cargarDatosHoy();
+  try {
+    await fetch(API + '/api/evaluaciones/subir', { 
+      method: 'POST', 
+      headers: {'Authorization':'Bearer ' + authToken}, 
+      body: formData 
+    });
+    alert('✅ Cronograma procesado'); 
+    cargarDatosHoy();
+  } catch(e) { alert('Error al subir cronograma'); }
 }
 
+// INICIALIZACIÓN
 checkAuth();
 </script>
 </body>
