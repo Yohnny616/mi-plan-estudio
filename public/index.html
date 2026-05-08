@@ -204,8 +204,18 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
   </div>
 
   <div class="card" style="border: 1px solid #FF6B6B; margin-bottom: 20px;">
-    <div class="card-title" style="color:#FF6B6B">📝 AGREGAR NUEVA EVALUACIÓN</div>
-    <select id="ev-asignatura" class="login-input" style="padding: 8px; margin-bottom: 8px;">
+    <div class="card-title" style="color:#FF6B6B">📝 EVALUACIONES</div>
+    
+    <div style="padding-bottom: 12px; border-bottom: 1px dashed #eee; margin-bottom: 12px;">
+      <div style="font-size: 0.75rem; font-weight: 800; margin-bottom: 8px;">OPCIÓN 1: CARGA MASIVA (PDF)</div>
+      <div style="font-size: 0.7rem; color: #7f8c8d; margin-bottom: 8px;">Sube el cronograma completo y la IA extraerá todas las fechas.</div>
+      <input type="file" id="fileCronograma" accept=".pdf" style="margin-bottom: 8px; width:100%; font-size:0.7rem">
+      <button class="upload-btn" onclick="subirCronograma()" style="background:#FF6B6B; width:100%; padding:8px; font-size:0.8rem">🚀 Cargar Todo el Mes</button>
+    </div>
+
+    <div style="font-size: 0.75rem; font-weight: 800; margin-bottom: 8px;">OPCIÓN 2: AGREGAR UNA SOLA</div>
+    <select id="ev-asignatura" class="login-input" style="padding: 8px; margin-bottom: 8px; font-size:0.8rem">
+
       <option value="Matemática">🔢 Matemática</option>
       <option value="Lenguaje">📖 Lenguaje</option>
       <option value="Ciencias Naturales">🧪 Ciencias</option>
@@ -218,7 +228,24 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
     <button class="upload-btn" onclick="agregarEvaluacion()" style="background:#FF6B6B; width:100%">📅 Guardar Fecha</button>
   </div>
 
+  <div class="card" style="border: 1px solid #FF9F45; margin-bottom: 20px;">
+    <div class="card-title" style="color:#FF9F45">🏠 GESTIONAR TAREAS DEL HOGAR</div>
+    <div id="lista-tareas-config" style="margin-bottom: 12px;"></div>
+    <div style="border-top: 1px solid #eee; pt: 12px; mt: 12px;">
+      <input type="text" id="new-tarea-titulo" placeholder="Título (ej: Lavar platos)" class="login-input" style="padding: 8px; margin-bottom: 8px;">
+      <div style="display:flex; gap:8px">
+        <input type="text" id="new-tarea-emoji" placeholder="Emoji (🏠)" class="login-input" style="padding: 8px; flex:1">
+        <input type="text" id="new-tarea-hora" placeholder="Horario (ej: 18:00)" class="login-input" style="padding: 8px; flex:2">
+      </div>
+      <label style="font-size:0.8rem; display:block; margin-bottom:8px">
+        <input type="checkbox" id="new-tarea-foto"> ¿Requiere foto de evidencia?
+      </label>
+      <button class="upload-btn" onclick="agregarTareaHogar()" style="background:#FF9F45; width:100%">➕ Añadir Tarea</button>
+    </div>
+  </div>
+
   <h4>📊 Resumen de la Semana</h4>
+
   <div id="padres-stats"></div>
 
 
@@ -477,7 +504,13 @@ async function checkAuth() {
   }
 }
 
+function formatearFecha(f) {
+  const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
+  return new Date(f).toLocaleDateString('es-CL', opciones);
+}
+
 function showLogin() {
+
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('appContainer').style.display = 'none';
 }
@@ -493,6 +526,8 @@ function showApp() {
     document.getElementById('btnPanelPadres').classList.remove('hidden');
     document.getElementById('uploadPadres').classList.remove('hidden');
     document.getElementById('uploadBloqueo').classList.add('hidden');
+    document.getElementById('padresPanel').classList.add('active'); // Abrir automáticamente
+    cargarPanelPadres();
   } else {
     document.getElementById('btnPanelPadres').classList.add('hidden');
     document.getElementById('padresPanel').classList.remove('active');
@@ -501,6 +536,7 @@ function showApp() {
   }
   cargarDatosHoy();
 }
+
 
 async function doLogin() {
   const email = document.getElementById('loginEmail').value;
@@ -807,10 +843,42 @@ async function cargarPanelPadres() {
     const pendientes = data.evidencias.filter(e => !e.aprobada);
     document.getElementById('padres-evidencias').innerHTML = pendientes.length ? pendientes.map(e => `<div class="padres-evidencia"><div style="width:60px; height:60px; background:#FFE4EC; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem">📸</div><div class="info"><div style="font-weight:700">Tarea #${e.tarea_id}</div><div style="font-size:0.75rem; color:var(--text2)">${e.fecha}</div></div><div class="btn-aprobacion"><button class="btn-aprobar" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 1)">✅ Aprobar</button><button class="btn-rechazar" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 0)">❌ Rechazar</button></div></div>`).join('') : '<p style="color:#999; font-size:0.85rem">No hay evidencias pendientes 🎉</p>';
     document.getElementById('padres-actividad').innerHTML = data.actividad.slice(0, 10).map(a => '<span>' + new Date(a.created_at).toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'}) + '</span> ' + (a.tipo === 'quiz' ? '🎮' : a.tipo === 'tarea' ? '🏠' : '📖') + ' ' + a.descripcion + '<br>').join('');
+    
+    cargarConfigTareas();
   } catch (e) {
     document.getElementById('padres-stats').innerHTML = '<p style="color:#999">Error al cargar estadísticas.</p>';
   }
 }
+
+async function cargarConfigTareas() {
+  const tareas = await fetch(API + '/api/tareas/config', { headers: authHeaders() }).then(r => r.json());
+  document.getElementById('lista-tareas-config').innerHTML = tareas.map(t => `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px; background:white; border-radius:8px; margin-bottom:4px; font-size:0.85rem"><span>${t.emoji} ${t.titulo} (${t.horario})</span><button onclick="borrarTareaHogar(${t.id})" style="background:none; border:none; color:#FF6B6B; cursor:pointer; font-weight:800">🗑️</button></div>`).join('');
+}
+
+async function agregarTareaHogar() {
+  const data = {
+    titulo: document.getElementById('new-tarea-titulo').value,
+    emoji: document.getElementById('new-tarea-emoji').value,
+    horario: document.getElementById('new-tarea-hora').value,
+    requiere_foto: document.getElementById('new-tarea-foto').checked
+  };
+  if (!data.titulo) return alert('Ponle un nombre a la tarea');
+  
+  await fetch(API + '/api/tareas/config', {
+    method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  document.getElementById('new-tarea-titulo').value = '';
+  cargarConfigTareas(); cargarDatosHoy();
+}
+
+async function borrarTareaHogar(id) {
+  if (!confirm('¿Borrar esta tarea?')) return;
+  await fetch(API + '/api/tareas/config/' + id, { method: 'DELETE', headers: authHeaders() });
+  cargarConfigTareas(); cargarDatosHoy();
+}
+
 
 async function subirPlan() {
   const file = document.getElementById('filePlan').files[0];
@@ -853,6 +921,24 @@ async function agregarEvaluacion() {
     }
   } catch (e) { alert('Error al guardar evaluación'); }
 }
+
+async function subirCronograma() {
+  const file = document.getElementById('fileCronograma').files[0];
+  if (!file) return alert('Selecciona el PDF del cronograma');
+  
+  const formData = new FormData();
+  formData.append('archivo', file);
+
+  try {
+    const res = await fetch(API + '/api/evaluaciones/subir', { method: 'POST', headers: authHeaders(), body: formData }).then(r => r.json());
+    if (res.success) {
+      alert('✅ ¡Increíble! La IA detectó y guardó ' + res.count + ' evaluaciones.');
+      cargarDatosHoy();
+      document.getElementById('fileCronograma').value = '';
+    }
+  } catch (e) { alert('Error al procesar el cronograma'); }
+}
+
 
 
 function getEmojiAsignatura(a) {

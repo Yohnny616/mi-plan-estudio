@@ -308,7 +308,40 @@ app.post('/api/plan/subir', authMiddleware, requirePadre, upload.single('plan'),
     }
 });
 
+app.post('/api/evaluaciones/subir', authMiddleware, requirePadre, upload.single('archivo'), async (req, res) => {
+    try {
+        const filePath = req.file.path;
+        const texto = await extraerTextoPDF(filePath);
+        
+        const prompt = `Extrae TODAS las evaluaciones (pruebas, trabajos, controles) del siguiente texto de un cronograma escolar. 
+        Para cada evaluación identifica: fecha (formato YYYY-MM-DD), asignatura, tipo (Prueba, Trabajo, etc) y título.
+        Responde ÚNICAMENTE con un array JSON de objetos.
+        Texto: ${texto}`;
+
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let jsonStr = response.text().replace(/```json|```/g, '').trim();
+        const evaluaciones = JSON.parse(jsonStr);
+
+        for (const ev of evaluaciones) {
+            await pool.query(
+                'INSERT INTO evaluaciones (fecha, asignatura, tipo, titulo, descripcion) VALUES ($1, $2, $3, $4, $5)',
+                [ev.fecha, ev.asignatura, ev.tipo || 'Prueba', ev.titulo, '']
+            );
+        }
+
+        fs.unlinkSync(filePath);
+        res.json({ success: true, count: evaluaciones.length });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error procesando cronograma: ' + err.message });
+    }
+});
+
 app.get('/api/plan/hoy', authMiddleware, async (req, res) => {
+
     const dias = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
     const hoy = dias[new Date().getDay()].toUpperCase();
     try {
@@ -396,7 +429,34 @@ app.get('/api/tareas/hoy', authMiddleware, async (req, res) => {
 });
 
 
-app.post('/api/tareas/completar', authMiddleware, requireHijo, upload.single('foto'), async (req, res) => {
+// TAREAS DEL HOGAR (CONFIGURACIÓN)
+app.get('/api/tareas/config', authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM tareas_hogar ORDER BY id ASC');
+        res.json(result.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/tareas/config', authMiddleware, requirePadre, async (req, res) => {
+    const { titulo, emoji, horario, requiere_foto } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO tareas_hogar (titulo, emoji, horario, requiere_foto) VALUES ($1, $2, $3, $4)',
+            [titulo, emoji || '🏠', horario || 'Pendiente', requiere_foto ? 1 : 0]
+        );
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/tareas/config/:id', authMiddleware, requirePadre, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM tareas_hogar WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/tareas/completar', authMiddleware, upload.single('foto'), async (req, res) => {
+
     const { tarea_id, completada } = req.body;
     const hijoId = req.user.id;
     const hoy = new Date().toISOString().split('T')[0];
