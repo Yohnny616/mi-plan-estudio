@@ -106,19 +106,56 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
 
   <div class="padres-panel" id="padresPanel">
     <h3 style="margin-bottom:15px">🛠️ Herramientas de Padres</h3>
+    
+    <div class="card" style="border-left: 5px solid #FF9F45">
+      <div class="card-title">🏠 GESTIONAR TAREAS DEL HOGAR</div>
+      <div id="lista-tareas-config" style="margin-bottom: 12px;"></div>
+      <div style="border-top: 1px solid #eee; padding-top: 12px; margin-top: 12px;">
+        <input type="text" id="new-tarea-titulo" placeholder="Título (ej: Lavar platos)" class="login-input" style="padding: 8px; margin-bottom: 8px;">
+        <div style="display:flex; gap:8px">
+          <input type="text" id="new-tarea-emoji" placeholder="Emoji (🏠)" class="login-input" style="padding: 8px; flex:1">
+          <input type="text" id="new-tarea-hora" placeholder="Horario (ej: 18:00)" class="login-input" style="padding: 8px; flex:2">
+        </div>
+        <label style="font-size:0.8rem; display:block; margin-bottom:8px">
+          <input type="checkbox" id="new-tarea-foto"> ¿Requiere foto de evidencia?
+        </label>
+        <button class="login-btn" onclick="agregarTareaHogar()" style="background:#FF9F45; margin-top:0">➕ Añadir Tarea</button>
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 5px solid #4D96FF">
+      <div class="card-title">📚 SUBIR MATERIAL DEL MINEDUC</div>
+      <div style="font-size: 0.8rem; margin-bottom: 12px; color: #7f8c8d;">La IA creará un resumen y un Quiz automático.</div>
+      <select id="uploadAsignatura" class="login-input" style="padding:8px">
+        <option value="Lenguaje">Lenguaje</option>
+        <option value="Matemática">Matemática</option>
+        <option value="Ciencias Naturales">Ciencias Naturales</option>
+        <option value="Historia">Historia</option>
+      </select>
+      <input type="file" id="uploadFile" accept=".pdf,.docx" style="margin-bottom:10px" onchange="mostrarNombreArchivo()">
+      <div id="nombre-archivo" style="font-size:0.8rem; font-weight:bold; margin-bottom:10px; color:#4D96FF"></div>
+      <button class="login-btn" id="upload-text" onclick="subirMaterial()" style="background:#4D96FF">Generar Resumen y Quiz 🧠</button>
+      <div id="upload-loading" class="hidden" style="text-align:center"><div class="loading"></div> Creando magia...</div>
+    </div>
+
     <div class="card" style="border-left: 5px solid #667eea">
       <div class="card-title">📅 CARGAR PLAN SEMANAL</div>
       <input type="date" id="semana_inicio" class="login-input" style="padding:8px">
       <input type="file" id="filePlan" accept=".pdf" style="margin-bottom:10px">
       <button class="login-btn" onclick="subirPlan()">Extraer Horario con IA 🤖</button>
     </div>
+    
     <div class="card" style="border-left: 5px solid #FF6B6B">
       <div class="card-title">📝 CARGAR CRONOGRAMA PRUEBAS</div>
       <input type="file" id="fileCronograma" accept=".pdf" style="margin-bottom:10px">
       <button class="login-btn" onclick="subirCronograma()" style="background:#FF6B6B">Cargar Todo el Mes 🚀</button>
     </div>
+    
     <div id="padres-stats"></div>
-    <div id="padres-evidencias"></div>
+    <div style="margin-top:16px; padding-top:16px; border-top:2px solid #ddd">
+      <h4>🏠 Evidencias pendientes</h4>
+      <div id="padres-evidencias"></div>
+    </div>
   </div>
 
   <!-- PANTALLA HOY -->
@@ -140,7 +177,8 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
 
   <!-- PANTALLA ESTUDIAR -->
   <div class="screen" id="screen-estudiar">
-    <div class="card"><div class="card-title">📖 Materias Disponibles</div><div id="lista-materias"></div></div>
+    <div class="card" id="selector-materias"><div class="card-title">📖 Materias Disponibles</div><div id="lista-materias"></div></div>
+    <div id="resumen-container" class="hidden"></div>
     <div id="quiz-container" class="hidden"><div class="card" id="quiz-content"></div></div>
   </div>
 
@@ -261,13 +299,37 @@ async function cargarDatosHoy() {
     const resTareas = await fetch(API + '/api/tareas/hoy', { headers: authHeaders() });
     const tareas = await resTareas.json();
     document.getElementById('tareas-hogar').innerHTML = Array.isArray(tareas) && tareas.length ? 
-      tareas.map(t => `<div class="tarea-item ${t.completada?'completada':''}">
-        <div class="tarea-icon">${t.emoji || '🏠'}</div>
-        <div style="flex:1"><h4>${t.titulo}</h4><p>${t.horario}</p></div>
-        <button class="tarea-btn ${t.completada?'tarea-btn-undo':'tarea-btn-hecho'}" onclick="completarTarea(${t.id})">
-          ${t.completada?'✅':'Hecho'}
-        </button>
-      </div>`).join('') : '<p style="color:#999; text-align:center">Sin tareas asignadas.</p>';
+      tareas.map(t => {
+        let btnHtml = '';
+        if (currentUser.rol === 'hijo') {
+          if (t.completada) {
+            btnHtml = `<button class="tarea-btn tarea-btn-undo" onclick="toggleTarea(${t.id})">↩️ Deshacer</button>`;
+          } else if (t.requiere_foto) {
+            btnHtml = `<label class="tarea-btn tarea-btn-foto" style="cursor:pointer; display:inline-block; text-align:center">📸 Foto<input type="file" accept="image/*" class="hidden" onchange="subirFoto(${t.id}, this)"></label>`;
+          } else {
+            btnHtml = `<button class="tarea-btn tarea-btn-hecho" onclick="completarTarea(${t.id})">✅ Hecho</button>`;
+          }
+        } else {
+          if (t.completada && !t.aprobada && t.foto_path) {
+            btnHtml = `<div style="display:flex; gap:5px"><button class="tarea-btn tarea-btn-hecho" onclick="aprobarTareaPadre(${t.id}, '${new Date().toISOString().split('T')[0]}', 1)" style="padding:5px 10px">✅</button><button class="tarea-btn tarea-btn-undo" onclick="aprobarTareaPadre(${t.id}, '${new Date().toISOString().split('T')[0]}', 0)" style="padding:5px 10px">❌</button></div>`;
+          } else if (t.aprobada) {
+            btnHtml = '<span style="color:#27ae60; font-size:0.8rem; font-weight:700">✅ Aprobada</span>';
+          } else if (t.completada) {
+             btnHtml = '<span style="color:#27ae60; font-size:0.8rem; font-weight:700">✅ Hecho</span>';
+          } else {
+            btnHtml = '<span style="color:#999; font-size:0.8rem">Pendiente</span>';
+          }
+        }
+
+        return `<div class="tarea-item ${t.completada?'completada':''}" id="tarea-${t.id}">
+          <div class="tarea-icon">${t.emoji || '🏠'}</div>
+          <div style="flex:1"><h4>${t.titulo}</h4><p style="font-size:0.75rem; color:#777">${t.horario}</p>
+          ${t.foto_path && !t.aprobada ? '<div style="font-size:0.7rem; color:#f39c12; margin-top:2px">⏳ Esperando aprobación</div>' : ''}
+          ${t.aprobada ? '<div style="font-size:0.7rem; color:#27ae60; margin-top:2px">✅ Aprobado</div>' : ''}
+          </div>
+          ${btnHtml}
+        </div>`;
+      }).join('') : '<p style="color:#999; text-align:center">Sin tareas asignadas.</p>';
 
     // 4. Estrellitas
     const resEst = await fetch(API + '/api/estrellitas', { headers: authHeaders() });
@@ -306,16 +368,135 @@ async function cargarLogros() {
   } catch(e) { console.error(e); }
 }
 
-// CARGA DE MATERIAS PARA ESTUDIAR (PANTALLA 3)
-function cargarMaterias() {
-  const materias = ['Matemática', 'Lenguaje', 'Ciencias Naturales', 'Historia', 'Inglés', 'Alemán'];
-  document.getElementById('lista-materias').innerHTML = materias.map(m => `
-    <div class="clase-item" onclick="alert('Funcionalidad de resumen en desarrollo')">
-      <div class="clase-icon" style="background:${getColorAsignatura(m)}">${getEmojiAsignatura(m)}</div>
-      <div class="clase-info"><h4>${m}</h4><p>Toca para ver resúmenes y quizzes</p></div>
-    </div>
-  `).join('');
+// CARGA DE MATERIAS Y RESÚMENES (PANTALLA 3)
+let resumenes = {};
+let currentQuiz = [];
+let currentQuestion = 0;
+let correctAnswers = 0;
+let currentSubject = '';
+
+async function cargarMaterias() {
+  try {
+    const res = await fetch(API + '/api/materiales', { headers: authHeaders() });
+    if(res.ok) {
+      const data = await res.json();
+      resumenes = {};
+      data.forEach(m => { resumenes[m.asignatura] = m.contenido; });
+      
+      const materias = Object.keys(resumenes);
+      document.getElementById('lista-materias').innerHTML = materias.length ? materias.map(m => `
+        <div class="clase-item" onclick="showResumen('${m}')" style="background:${getColorAsignatura(m)}20">
+          <div class="clase-icon" style="background:${getColorAsignatura(m)}">${getEmojiAsignatura(m)}</div>
+          <div class="clase-info"><h4>${m}</h4><p>Ver resumen y Quiz</p></div>
+        </div>
+      `).join('') : '<p style="text-align:center; padding:20px; color:#999">Papá o Mamá aún no han subido materiales de estudio.</p>';
+    }
+  } catch(e) { console.error(e); }
 }
+
+function showResumen(subject) {
+  const r = resumenes[subject];
+  if(!r) return;
+  const html = `
+    <div class="card">
+      <div style="display:flex; align-items:center; margin-bottom:16px">
+        <div class="clase-icon" style="background: ${getColorAsignatura(subject)}; margin-right:12px">${getEmojiAsignatura(subject)}</div>
+        <div><h3 style="font-size:1.1rem">${subject}</h3><p style="font-size:0.8rem; color:var(--text2)">Material de Estudio</p></div>
+      </div>
+      <div style="border-left: 4px solid ${getColorAsignatura(subject)}; padding-left:12px; background:#f9f9f9; padding:12px; border-radius:0 12px 12px 0">
+        <h4 style="color:${getColorAsignatura(subject)}">📋 RESUMEN</h4>
+        <div style="font-size:0.9rem; white-space:pre-line">${r.resumen || r}</div>
+      </div>
+      <button class="btn-primary" style="background:${getColorAsignatura(subject)}; color:white" onclick="startQuiz('${subject}')">🎮 HACER QUIZ</button>
+      <button class="btn-primary" style="background:#eee; color:#333; margin-top:8px" onclick="document.getElementById('resumen-container').classList.add('hidden'); document.getElementById('selector-materias').classList.remove('hidden')">⬅️ Volver</button>
+    </div>`;
+
+  document.getElementById('selector-materias').classList.add('hidden');
+  const container = document.getElementById('resumen-container');
+  container.innerHTML = html; 
+  container.classList.remove('hidden');
+  document.getElementById('quiz-container').classList.add('hidden');
+}
+
+function startQuiz(subject) {
+  currentQuiz = [
+    {q: "¿Has comprendido el material principal de " + subject + "?", options: ["Sí", "No", "Más o menos"], correct: 0, explanation: "¡Excelente! La IA generará quizzes dinámicos pronto."},
+    {q: "¿Te sientes preparado para la evaluación?", options: ["Sí", "Aún debo repasar"], correct: 0, explanation: "Confía en ti mismo."}
+  ]; // Placeholder for actual AI generated quizzes
+  
+  if(resumenes[subject] && resumenes[subject].quiz) {
+      currentQuiz = resumenes[subject].quiz;
+  }
+
+  currentQuestion = 0; correctAnswers = 0; currentSubject = subject;
+  document.getElementById('resumen-container').classList.add('hidden');
+  document.getElementById('quiz-container').classList.remove('hidden');
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = currentQuiz[currentQuestion];
+  const html = `
+    <div style="margin-bottom:12px; font-size:0.8rem; color:#999; text-align:center">Pregunta ${currentQuestion + 1} de ${currentQuiz.length}</div>
+    <h3 style="margin-bottom:16px">${q.q}</h3>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      ${q.options.map((opt, i) => `<button class="login-input" style="text-align:left; cursor:pointer" onclick="checkAnswer(${i}, this)">${opt}</button>`).join('')}
+    </div>
+    <div id="explanation-box" class="hidden" style="margin-top:16px; padding:16px; background:#f0f0f0; border-radius:12px; font-size:0.9rem">
+      <div id="explanation-text"></div>
+      <button class="btn-primary" style="background:#667eea; color:white" onclick="nextQuestion()">${currentQuestion < currentQuiz.length - 1 ? 'SIGUIENTE ➡️' : 'VER RESULTADO 🏆'}</button>
+    </div>`;
+  document.getElementById('quiz-content').innerHTML = html;
+}
+
+function checkAnswer(selected, btn) {
+  const q = currentQuiz[currentQuestion];
+  const buttons = btn.parentElement.children;
+  Array.from(buttons).forEach((b, i) => { 
+    b.disabled = true; 
+    if (i === q.correct) { b.style.background = '#e8f8e8'; b.style.borderColor = '#27ae60'; }
+  });
+  
+  const explBox = document.getElementById('explanation-box');
+  const explText = document.getElementById('explanation-text');
+  
+  if (selected === q.correct) {
+    correctAnswers++; 
+    btn.style.background = '#e8f8e8'; 
+    explText.innerHTML = `<div style="color:#27ae60; font-weight:bold; margin-bottom:5px">✅ ¡CORRECTO!</div>${q.explanation || ''}`;
+  } else {
+    btn.style.background = '#ffe8e8'; btn.style.borderColor = '#e74c3c';
+    explText.innerHTML = `<div style="color:#e74c3c; font-weight:bold; margin-bottom:5px">❌ Casi...</div>La respuesta era: <b>${q.options[q.correct]}</b><br>${q.explanation || ''}`;
+  }
+  explBox.classList.remove('hidden');
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion < currentQuiz.length) showQuestion(); else showResult();
+}
+
+async function showResult() {
+  const pct = (correctAnswers / currentQuiz.length) * 100;
+  let msg = '', emoji = '⭐';
+  if (pct === 100) { msg = '¡PERFECTO!'; emoji = '🌟🌟🌟'; } else if (pct >= 50) { msg = '¡Muy bien!'; emoji = '⭐⭐'; }
+  
+  const html = `
+    <div style="text-align:center">
+      <div style="font-size:4rem">${emoji}</div>
+      <h2>${correctAnswers}/${currentQuiz.length} correctas</h2>
+      <p style="color:#777; margin-bottom:15px">${msg}</p>
+      <div style="color:#27ae60; font-weight:bold; margin-bottom:20px">🎉 ¡Estrellitas ganadas para ${currentSubject}!</div>
+      <button class="btn-primary" onclick="document.getElementById('quiz-container').classList.add('hidden'); document.getElementById('selector-materias').classList.remove('hidden')">⬅️ VOLVER</button>
+    </div>`;
+  document.getElementById('quiz-content').innerHTML = html;
+  
+  if (currentUser.rol === 'hijo') {
+    try { await fetch(API + '/api/quiz/resultado', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ asignatura: currentSubject, correctas: correctAnswers, total: currentQuiz.length }) }); } catch(e){}
+    cargarDatosHoy();
+  }
+}
+
 
 // FUNCIONES AUXILIARES
 function getEmojiAsignatura(a) {
@@ -338,12 +519,30 @@ function actualizarEstrellitas(data) {
 async function completarTarea(id) {
   try {
     await fetch(API + '/api/tareas/completar', { 
-      method: 'POST', 
-      headers: authHeaders(), 
-      body: JSON.stringify({tarea_id: id, completada: 1}) 
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({tarea_id: id, completada: 1}) 
     });
     cargarDatosHoy();
   } catch (e) { console.error(e); }
+}
+
+async function toggleTarea(id) {
+  try {
+    await fetch(API + '/api/tareas/completar', { 
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({tarea_id: id, completada: 0}) 
+    });
+    cargarDatosHoy();
+  } catch(e) {}
+}
+
+async function subirFoto(id, input) {
+  const file = input.files[0]; if (!file) return;
+  const formData = new FormData();
+  formData.append('foto', file); formData.append('tarea_id', id); formData.append('completada', 1);
+  try {
+    await fetch(API + '/api/tareas/completar', { method: 'POST', headers: {'Authorization':'Bearer ' + authToken}, body: formData });
+    alert('📸 Foto enviada a papá/mamá para revisión');
+    cargarDatosHoy();
+  } catch (e) { alert('Error al subir foto'); }
 }
 
 // ACCIONES DE PADRES
@@ -355,11 +554,90 @@ async function cargarPanelPadres() {
     const data = await res.json();
     const total = data.estrellitas.reduce((a,b)=>a+b.total,0);
     document.getElementById('padres-stats').innerHTML = `
-      <div class="stat-box" style="margin-top:10px">
-        <div class="stat-number">${total}</div>
-        <div>Estrellitas Totales Acumuladas</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-number">${data.quizzes_semana || 0}</div><div style="font-size:0.7rem">Quizzes Semana</div></div>
+        <div class="stat-box"><div class="stat-number">${total}</div><div style="font-size:0.7rem">Estrellas Totales</div></div>
       </div>`;
+    
+    const pendientes = data.evidencias ? data.evidencias.filter(e => !e.aprobada) : [];
+    document.getElementById('padres-evidencias').innerHTML = pendientes.length ? pendientes.map(e => `
+      <div style="display:flex; align-items:center; padding:10px; background:white; border-radius:10px; margin-bottom:8px">
+        <div style="font-size:1.5rem; margin-right:10px">📸</div>
+        <div style="flex:1"><div style="font-weight:bold">Tarea #${e.tarea_id}</div><div style="font-size:0.7rem">${e.fecha}</div></div>
+        <button class="tarea-btn tarea-btn-hecho" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 1)" style="margin-right:5px">✅</button>
+        <button class="tarea-btn tarea-btn-undo" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 0)">❌</button>
+      </div>`).join('') : '<p style="color:#999; font-size:0.8rem">No hay evidencias pendientes.</p>';
+      
+    cargarConfigTareas();
   } catch(e) { console.error(e); }
+}
+
+async function aprobarTareaPadre(tareaId, fecha, aprobada) {
+  try {
+    await fetch(API + '/api/tareas/aprobar', {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ tarea_id: tareaId, fecha, aprobada })
+    });
+    cargarDatosHoy(); cargarPanelPadres();
+  } catch(e) { alert('Error'); }
+}
+
+async function cargarConfigTareas() {
+  try {
+    const tareas = await fetch(API + '/api/tareas/config', { headers: authHeaders() }).then(r => r.json());
+    document.getElementById('lista-tareas-config').innerHTML = tareas.map(t => `
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px; background:white; border-radius:8px; margin-bottom:4px; font-size:0.85rem">
+        <span>${t.emoji} ${t.titulo} (${t.horario})</span>
+        <button onclick="borrarTareaHogar(${t.id})" style="background:none; border:none; color:#FF6B6B; cursor:pointer">🗑️</button>
+      </div>`).join('');
+  } catch(e){}
+}
+
+async function agregarTareaHogar() {
+  const data = {
+    titulo: document.getElementById('new-tarea-titulo').value,
+    emoji: document.getElementById('new-tarea-emoji').value,
+    horario: document.getElementById('new-tarea-hora').value,
+    requiere_foto: document.getElementById('new-tarea-foto').checked
+  };
+  if(!data.titulo) return alert('Ponle un nombre');
+  await fetch(API + '/api/tareas/config', { method: 'POST', headers: authHeaders(), body: JSON.stringify(data) });
+  document.getElementById('new-tarea-titulo').value = '';
+  cargarConfigTareas(); cargarDatosHoy();
+}
+
+async function borrarTareaHogar(id) {
+  if(!confirm('¿Borrar?')) return;
+  await fetch(API + '/api/tareas/config/' + id, { method: 'DELETE', headers: authHeaders() });
+  cargarConfigTareas(); cargarDatosHoy();
+}
+
+function mostrarNombreArchivo() {
+  const file = document.getElementById('uploadFile').files[0];
+  if(file) document.getElementById('nombre-archivo').textContent = '📄 ' + file.name;
+}
+
+async function subirMaterial() {
+  const file = document.getElementById('uploadFile').files[0];
+  const asignatura = document.getElementById('uploadAsignatura').value;
+  if(!file) return alert('Selecciona un archivo');
+  
+  document.getElementById('upload-text').classList.add('hidden');
+  document.getElementById('upload-loading').classList.remove('hidden');
+  
+  const formData = new FormData();
+  formData.append('material', file); formData.append('asignatura', asignatura); formData.append('titulo', file.name);
+  
+  try {
+    await fetch(API + '/api/materiales/subir', { method: 'POST', headers: {'Authorization':'Bearer ' + authToken}, body: formData });
+    document.getElementById('upload-text').classList.remove('hidden');
+    document.getElementById('upload-loading').classList.add('hidden');
+    alert('✅ Resumen generado exitosamente');
+    document.getElementById('uploadFile').value = ''; document.getElementById('nombre-archivo').textContent = '';
+  } catch(e) {
+    document.getElementById('upload-text').classList.remove('hidden');
+    document.getElementById('upload-loading').classList.add('hidden');
+    alert('Error al subir material');
+  }
 }
 
 async function subirPlan() {

@@ -277,34 +277,31 @@ app.post('/api/plan/subir', authMiddleware, requirePadre, upload.single('plan'),
     try {
         const filePath = req.file.path;
         const texto = await extraerTextoPDF(filePath);
-        const lineas = texto.split('\n');
-        const planItems = [];
-        let diaActual = '';
+        
+        const prompt = `Actúa como un asistente escolar. Extrae el horario de clases del siguiente texto de un plan semanal.
+        Identifica para cada bloque de clases: dia (LUNES, MARTES, MIERCOLES, JUEVES o VIERNES), hora_inicio (HH:MM), hora_fin (HH:MM), asignatura (ej: Matemática, Lenguaje) y actividad (breve descripción o tema).
+        Devuelve ÚNICAMENTE un array JSON válido con esos campos.
+        Texto: ${texto}`;
 
-        lineas.forEach(linea => {
-            const diaMatch = linea.match(/(LUNES|MARTES|MIERCOLES|JUEVES|VIERNES)/i);
-            if (diaMatch) diaActual = diaMatch[1];
-            const horaMatch = linea.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);
-            const asigMatch = linea.match(/(MATEMATICA|LENGUAJE|CIENCIAS|HISTORIA|INGLES|ALEMAN|RELIGION|ARTE|EDUCACION FISICA|TECNOLOGIA)/i);
-            if (horaMatch && asigMatch && diaActual) {
-                planItems.push({
-                    dia: diaActual,
-                    hora_inicio: horaMatch[1],
-                    hora_fin: horaMatch[2],
-                    asignatura: asigMatch[1],
-                    actividad: linea.substring(linea.indexOf(asigMatch[1]) + asigMatch[1].length).trim()
-                });
-            }
-        });
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let jsonStr = response.text().replace(/```json|```/g, '').trim();
+        const planItems = JSON.parse(jsonStr);
 
         for (let item of planItems) {
-            await pool.query(`INSERT INTO plan_semanal (semana_inicio, semana_fin, dia, hora_inicio, hora_fin, asignatura, actividad) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [req.body.semana_inicio, req.body.semana_fin, item.dia, item.hora_inicio, item.hora_fin, item.asignatura, item.actividad]);
+            await pool.query(
+                `INSERT INTO plan_semanal (semana_inicio, semana_fin, dia, hora_inicio, hora_fin, asignatura, actividad) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [req.body.semana_inicio, req.body.semana_fin || req.body.semana_inicio, item.dia, item.hora_inicio, item.hora_fin, item.asignatura, item.actividad || 'Clase regular']
+            );
         }
 
+        fs.unlinkSync(filePath);
         res.json({ success: true, items: planItems.length });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Error IA Plan:", err);
+        res.status(500).json({ error: 'Error procesando plan: ' + err.message });
     }
 });
 
