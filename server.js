@@ -24,6 +24,7 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+app.use(require('cors')());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -110,6 +111,9 @@ async function initDB() {
             FOREIGN KEY (hijo_id) REFERENCES usuarios(id),
             FOREIGN KEY (revisado_por) REFERENCES usuarios(id)
         )`);
+
+        // Unique constraint for ON CONFLICT in tareas_completadas
+        await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_tareas_completadas_unique ON tareas_completadas(tarea_id, hijo_id, fecha)`);
 
         await pool.query(`CREATE TABLE IF NOT EXISTS estrellitas (
             id SERIAL PRIMARY KEY,
