@@ -2,755 +2,164 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Mi Plan de Estudio - 6° SA</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root {
-  --mate: #FFD93D; --leng: #4D96FF; --cien: #6BCB77; --hist: #AA7C55;
-  --ingl: #FF6B6B; --alem: #9B59B6; --reli: #ECF0F1; --arte: #FF9F45;
-  --edfis: #2C3E50; --tecno: #95A5A6; --orie: #E74C3C; --musi: #1ABC9C;
-  --hogar: #FF6B9D; --bg: #F8F9FA; --card: #FFFFFF; --text: #2C3E50; --text2: #7F8C8D;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; padding-bottom: 80px; }
-
-.login-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
-.login-screen.hidden { display: none !important; }
-.login-card { background: white; border-radius: 24px; padding: 32px 24px; width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; }
-.login-emoji { font-size: 4rem; margin-bottom: 12px; }
-.login-title { font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 4px; }
-.login-sub { font-size: 0.85rem; color: var(--text2); margin-bottom: 24px; }
-.login-input { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 14px; font-size: 1rem; font-family: 'Nunito', sans-serif; margin-bottom: 12px; outline: none; transition: border-color 0.2s; }
-.login-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 1rem; font-weight: 800; cursor: pointer; margin-top: 8px; }
-.login-error { background: #FFE8E8; color: #c0392b; padding: 12px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; display: none; }
-
-.header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; }
-.header h1 { font-size: 1.3rem; font-weight: 800; }
-.header p { font-size: 0.8rem; opacity: 0.8; margin-top: 4px; }
-
-.user-badge { position: fixed; top: 75px; left: 10px; z-index: 200; background: white; border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; }
-.user-badge .rol { padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; text-transform: uppercase; }
-.user-badge .rol.padre { background: #E8F0FF; color: #667eea; }
-.user-badge .rol.hijo { background: #E8F8E8; color: #27ae60; }
-.logout-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: 700; font-size: 0.7rem; margin-left: 5px; }
-
-.screen { display: none; padding: 16px; animation: fadeIn 0.3s ease; }
-.screen.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.card { background: var(--card); border-radius: 18px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-.card-title { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text2); margin-bottom: 14px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
-
-.alert-exam { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%); color: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center; box-shadow: 0 10px 25px rgba(238, 90, 90, 0.3); }
-.alert-exam h3 { font-size: 1.2rem; margin-bottom: 4px; }
-.btn-primary { background: white; color: #ee5a5a; border: none; padding: 14px 28px; border-radius: 30px; font-weight: 800; font-size: 0.9rem; margin-top: 14px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-
-.clase-item { display: flex; align-items: center; padding: 14px; border-radius: 16px; margin-bottom: 10px; transition: transform 0.2s; }
-.clase-item:active { transform: scale(0.98); }
-.clase-icon { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-right: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-.clase-info { flex: 1; }
-.clase-info h4 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
-.clase-info p { font-size: 0.8rem; color: var(--text2); }
-
-.tarea-item { display: flex; align-items: center; padding: 16px; border-radius: 18px; margin-bottom: 12px; background: white; border: 2px solid #f0f0f0; }
-.tarea-item.completada { border-color: #6BCB77; background: #F0FFF0; }
-.tarea-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 14px; background: #f9f9f9; }
-.tarea-btn { padding: 10px 18px; border-radius: 25px; border: none; font-weight: 800; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
-.tarea-btn-hecho { background: #6BCB77; color: white; }
-.tarea-btn-undo { background: #eee; color: #777; }
-
-.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
-.stat-box { background: white; padding: 14px; border-radius: 16px; text-align: center; border: 1px solid #eee; }
-.stat-number { font-size: 1.4rem; font-weight: 800; color: #667eea; }
-
-.padres-panel { display: none; background: #f1f3f9; border-radius: 20px; padding: 20px; margin: 15px; border: 2px dashed #667eea; }
-.padres-panel.active { display: block; }
-.padres-toggle { position: fixed; top: 75px; right: 10px; z-index: 200; background: #667eea; border: none; border-radius: 20px; padding: 8px 16px; font-size: 0.75rem; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4); }
-
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #eee; padding: 10px 0; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
-.bottom-btn { flex: 1; text-align: center; border: none; background: none; font-size: 0.75rem; color: #95A5A6; cursor: pointer; font-weight: 600; }
-.bottom-btn.active { color: #667eea; }
-.bottom-btn .icon { font-size: 1.5rem; display: block; margin-bottom: 2px; }
-
-.hidden { display: none !important; }
-#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-.toast { padding: 12px 24px; border-radius: 30px; color: white; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; pointer-events: all; }
-.toast.success { background: #27ae60; }
-.toast.error { background: #e74c3c; }
-.toast.info { background: #3498db; }
-@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.padre-mode .header { background: linear-gradient(135deg, #FF9F45 0%, #D35400 100%); }
-.padre-mode .bottom-nav .bottom-btn.active { color: #D35400; }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Plan de Estudio - SmartKids AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="toast-c" id="toast"><span id="toastTxt"></span></div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<div id="toast-container"></div>
-
-<div class="login-screen" id="loginScreen">
-  <div class="login-card">
-    <div class="login-emoji">🏫</div>
-    <div class="login-title">Mi Plan de Estudio</div>
-    <div class="login-sub">Acceso Seguro para la Familia</div>
-    <div class="login-error" id="loginError">❌ Error al iniciar sesión</div>
-    <button class="login-btn" style="background:#27ae60; margin-bottom:12px" onclick="doLogin('hija@familia.cl', 'hija2026')">👧 Soy Hija</button>
-    <button class="login-btn" style="background:#FF9F45" onclick="doLogin('padres@familia.cl', 'padre2026')">👨‍👩‍👧 Soy Papá / Mamá</button>
-  </div>
+<!-- LOGIN -->
+<div id="loginPage" style="display:block">
+<div class="login"><div class="login-card">
+<div class="login-logo"><div class="login-logo-icon">📚</div><div><h1>Mi Plan de Estudio</h1><p>6° SA · Santa Úrsula de Maipú</p></div></div>
+<h2>Bienvenido</h2><p class="login-sub">¿Quién inicia sesión hoy?</p>
+<div class="login-error" id="loginError">❌ Error al iniciar sesión</div>
+<div class="role-grid">
+<div class="role-btn sel" id="rParent" onclick="selRole('parent')"><span class="ri">👨‍💼</span><div class="rl">Soy Papá / Mamá</div><div class="rs">Panel de control</div></div>
+<div class="role-btn" id="rKid" onclick="selRole('kid')"><span class="ri">👧</span><div class="rl">Soy Hija</div><div class="rs">Mi espacio</div></div>
+</div>
+<button class="login-btn" onclick="doLogin()">Entrar →</button>
+</div></div>
 </div>
 
-<div id="appContainer" style="display:none">
-  <div class="header">
-    <h1>📚 Mi Plan de Estudio</h1>
-    <p>6° SA - Santa Úrsula de Maipú</p>
-  </div>
-  
-  <div class="user-badge">
-    <span id="userName">Usuario</span>
-    <span class="rol" id="userRol">Rol</span>
-    <button class="logout-btn" onclick="doLogout()">Salir 🚪</button>
-  </div>
+<!-- PARENT APP -->
+<div id="parentApp" class="shell hidden">
+<div class="sidebar">
+<div class="sb-logo"><div class="sb-logo-icon">📚</div><div><div class="sb-logo-text">Mi Plan de Estudio</div><div class="sb-logo-sub">Panel del padre</div></div></div>
+<span class="sb-section">Principal</span>
+<div class="sb-item active" onclick="goPage('dashboard',this)"><span class="si">📊</span>Dashboard</div>
+<span class="sb-section">Documentos</span>
+<div class="sb-item" onclick="goPage('documentos',this)"><span class="si">📁</span>Subir documentos</div>
+<div class="sb-item" onclick="goPage('materiales',this)"><span class="si">📚</span>Materiales</div>
+<span class="sb-section">Gestión</span>
+<div class="sb-item" onclick="goPage('evaluaciones',this)"><span class="si">📅</span>Evaluaciones</div>
+<div class="sb-item" onclick="goPage('tareas',this)"><span class="si">🏠</span>Tareas Hogar</div>
+<span class="sb-section">Sistema</span>
+<div class="sb-item" onclick="goPage('config',this)"><span class="si">⚙️</span>Configuración</div>
+<div class="sb-bottom">
+<div class="kid-card-sb" onclick="doLogout()"><div class="kid-av">🚪</div><div class="kid-info"><div class="kn">Cerrar sesión</div><div class="kg">Volver al inicio</div></div></div>
+</div>
+</div>
+<div class="main">
+<header style="background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:15px 36px">
+<button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+<div style="flex:1"><h2 style="font-weight:800;font-size:18px">Panel de Control Familiar</h2></div>
+<span class="b b-gemini" id="dashGB">🤖 Sin API Key</span>
+</header>
 
-  <button class="padres-toggle hidden" id="btnPanelPadres" onclick="togglePadresPanel()">⚙️ Panel Control</button>
-
-  <div class="padres-panel" id="padresPanel">
-    <h3 style="margin-bottom:15px">🛠️ Herramientas de Padres</h3>
-    
-    <div class="card" style="border-left: 5px solid #9B59B6">
-      <div class="card-title">👥 GESTIÓN DE FAMILIA</div>
-      <div id="lista-usuarios-familia" style="margin-bottom: 12px; font-size: 0.85rem;">Cargando...</div>
-    </div>
-    
-    <div class="card" style="border-left: 5px solid #FF9F45">
-      <div class="card-title">🏠 GESTIONAR TAREAS DEL HOGAR</div>
-      <div id="lista-tareas-config" style="margin-bottom: 12px;"></div>
-      <div style="border-top: 1px solid #eee; padding-top: 12px; margin-top: 12px;">
-        <input type="text" id="new-tarea-titulo" placeholder="Título (ej: Lavar platos)" class="login-input" style="padding: 8px; margin-bottom: 8px;">
-        <div style="display:flex; gap:8px">
-          <input type="text" id="new-tarea-emoji" placeholder="Emoji (🏠)" class="login-input" style="padding: 8px; flex:1">
-          <input type="text" id="new-tarea-hora" placeholder="Horario (ej: 18:00)" class="login-input" style="padding: 8px; flex:2">
-        </div>
-        <label style="font-size:0.8rem; display:block; margin-bottom:8px">
-          <input type="checkbox" id="new-tarea-foto"> ¿Requiere foto de evidencia?
-        </label>
-        <button class="login-btn" onclick="agregarTareaHogar()" style="background:#FF9F45; margin-top:0">➕ Añadir Tarea</button>
-      </div>
-    </div>
-
-    <div class="card" style="border-left: 5px solid #4D96FF">
-      <div class="card-title">📚 SUBIR MATERIAL DEL MINEDUC</div>
-      <div style="font-size: 0.8rem; margin-bottom: 12px; color: #7f8c8d;">La IA creará un resumen y un Quiz automático.</div>
-      <select id="uploadAsignatura" class="login-input" style="padding:8px">
-        <option value="Lenguaje">Lenguaje</option>
-        <option value="Matemática">Matemática</option>
-        <option value="Ciencias Naturales">Ciencias Naturales</option>
-        <option value="Historia">Historia</option>
-      </select>
-      <input type="file" id="uploadFile" accept=".pdf,.docx" style="margin-bottom:10px" onchange="mostrarNombreArchivo()">
-      <div id="nombre-archivo" style="font-size:0.8rem; font-weight:bold; margin-bottom:10px; color:#4D96FF"></div>
-      <button class="login-btn" id="upload-text" onclick="subirMaterial()" style="background:#4D96FF">Generar Resumen y Quiz 🧠</button>
-      <div id="upload-loading" class="hidden" style="text-align:center"><div class="loading"></div> Creando magia...</div>
-    </div>
-
-    <div class="card" style="border-left: 5px solid #667eea">
-      <div class="card-title">📅 CARGAR PLAN SEMANAL</div>
-      <input type="date" id="semana_inicio" class="login-input" style="padding:8px">
-      <input type="file" id="filePlan" accept=".pdf" style="margin-bottom:10px">
-      <button class="login-btn" onclick="subirPlan()">Extraer Horario con IA 🤖</button>
-    </div>
-    
-    <div class="card" style="border-left: 5px solid #FF6B6B">
-      <div class="card-title">📝 CARGAR CRONOGRAMA PRUEBAS</div>
-      <input type="file" id="fileCronograma" accept=".pdf" style="margin-bottom:10px">
-      <button class="login-btn" onclick="subirCronograma()" style="background:#FF6B6B">Cargar Todo el Mes 🚀</button>
-    </div>
-    
-    <div id="padres-stats"></div>
-    <div style="margin-top:16px; padding-top:16px; border-top:2px solid #ddd">
-      <h4>🏠 Evidencias pendientes</h4>
-      <div id="padres-evidencias"></div>
-    </div>
-  </div>
-
-  <!-- PANTALLA HOY -->
-  <div class="screen active" id="screen-hoy">
-    <div class="alert-exam" id="alerta-prueba"><h3>¡Cargando calendario! ⏳</h3></div>
-    <div class="card"><div class="card-title">📖 Clases para Hoy</div><div id="clases-hoy">Sin clases registradas.</div></div>
-    <div class="card"><div class="card-title">🏠 Tareas del Hogar</div><div id="tareas-hogar">No hay tareas pendientes.</div></div>
-    <div class="card">
-      <div class="card-title">⭐ Mis Estrellitas</div>
-      <div id="estrellitas-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px"></div>
-      <div id="meta-texto" style="font-weight:800; color:#27ae60">🎯 Meta: 0/20 estrellitas</div>
-    </div>
-  </div>
-
-  <!-- PANTALLA PRUEBAS -->
-  <div class="screen" id="screen-pruebas">
-    <div class="card"><div class="card-title">📅 Próximas Evaluaciones</div><div id="lista-pruebas"></div></div>
-  </div>
-
-  <!-- PANTALLA ESTUDIAR -->
-  <div class="screen" id="screen-estudiar">
-    <div class="card" id="selector-materias"><div class="card-title">📖 Materias Disponibles</div><div id="lista-materias"></div></div>
-    <div id="resumen-container" class="hidden"></div>
-    <div id="quiz-container" class="hidden"><div class="card" id="quiz-content"></div></div>
-  </div>
-
-  <!-- PANTALLA LOGROS -->
-  <div class="screen" id="screen-logros">
-    <div class="card"><div class="card-title">🏆 Galería de Logros</div><div id="logros-grid" class="stats-grid"></div></div>
-  </div>
-
-  <div class="bottom-nav">
-    <button class="bottom-btn active" id="nav-hoy" onclick="showScreen('hoy')"><span class="icon">🏠</span>Hoy</button>
-    <button class="bottom-btn" id="nav-pruebas" onclick="showScreen('pruebas')"><span class="icon">📋</span>Pruebas</button>
-    <button class="bottom-btn" id="nav-estudiar" onclick="showScreen('estudiar')"><span class="icon">📚</span>Estudiar</button>
-    <button class="bottom-btn" id="nav-logros" onclick="showScreen('logros')"><span class="icon">⭐</span>Logros</button>
-  </div>
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page on">
+<div class="ph"><div class="ph-row"><div><h2>Dashboard 📊</h2><p id="dashDate"></p></div></div></div>
+<div class="g3 mb5">
+<div class="stat st1" data-icon="⭐"><div class="sv" id="dEst">0</div><div class="sl">Estrellas Totales</div></div>
+<div class="stat st2" data-icon="🏠"><div class="sv" id="dTareas">0/0</div><div class="sl">Tareas Hogar</div></div>
+<div class="stat st3" data-icon="📝"><div class="sv" id="dEvals">0</div><div class="sl">Evaluaciones</div></div>
+</div>
+<div class="g2 mb5">
+<div class="card"><div class="card-title">⚠️ Evaluaciones próximas</div><div id="dashEvals"></div></div>
+<div class="card"><div class="card-title">🏠 Tareas de hoy</div><div id="dashTareas"></div></div>
+</div>
 </div>
 
-<script>
-const API = '';
-let currentUser = null;
-let authToken = localStorage.getItem('token');
+<!-- DOCUMENTOS -->
+<div id="page-documentos" class="page">
+<div class="ph"><h2>Documentos 📁</h2><p>Sube plan semanal, cronograma y materiales</p></div>
+<div class="g2 mb5">
+<div class="card"><div class="card-title">📋 Plan Semanal</div>
+<div class="upzone"><input type="file" id="filePlan" accept=".pdf"><div class="up-icon">📄</div><div class="up-t">Arrastra o haz clic</div><div class="up-s">Plan semanal PDF</div></div>
+<div class="fg mt3"><label class="fl">Semana inicio</label><input type="date" class="fi" id="planWeek"></div>
+<button class="btn btn-p wf mt3" onclick="subirPlan()">Cargar Plan ✨</button>
+</div>
+<div class="card"><div class="card-title">📅 Cronograma</div>
+<div class="upzone"><input type="file" id="fileCrono" accept=".pdf"><div class="up-icon">📅</div><div class="up-t">Arrastra o haz clic</div><div class="up-s">Cronograma evaluaciones</div></div>
+<button class="btn btn-p wf mt3" onclick="subirCronograma()">Cargar Cronograma ✨</button>
+</div>
+</div>
+<div class="card">
+<div class="card-title">📚 Subir Material de Estudio</div>
+<div class="g2">
+<div class="fg"><label class="fl">Asignatura</label><select class="fi" id="uploadAsig"><option>Lenguaje</option><option>Matemática</option><option>Ciencias Naturales</option><option>Historia</option><option>Inglés</option><option>Alemán</option></select></div>
+<div class="fg"><label class="fl">Archivo</label><input type="file" class="fi" id="uploadFile" accept=".pdf,.docx" style="padding:6px"></div>
+</div>
+<button class="btn btn-g wf" id="uploadBtn" onclick="subirMaterial()">Subir Material ✨</button>
+</div>
+</div>
 
-function authHeaders() { return { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' }; }
+<!-- MATERIALES -->
+<div id="page-materiales" class="page">
+<div class="ph"><h2>Materiales 📚</h2><p>Documentos subidos para estudio</p></div>
+<div class="card"><div id="matList"><p class="sm muted">Cargando...</p></div></div>
+</div>
 
-// INICIO Y AUTENTICACIÓN
-async function checkAuth() {
-  if (!authToken) { showLogin(); return; }
-  try {
-    const res = await fetch(API + '/api/auth/me', { headers: authHeaders() });
-    if (!res.ok) throw new Error();
-    currentUser = await res.json();
-    showApp();
-  } catch (e) { doLogout(); }
-}
+<!-- EVALUACIONES -->
+<div id="page-evaluaciones" class="page">
+<div class="ph"><h2>Evaluaciones 📅</h2><p>Cronograma de pruebas y trabajos</p></div>
+<div class="card"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Materia</th><th>Tipo</th><th>Contenido</th><th>Fecha</th><th>Días</th></tr></thead><tbody id="evalBody"></tbody></table></div></div>
+</div>
 
-function showLogin() { 
-  document.getElementById('loginScreen').classList.remove('hidden'); 
-  document.getElementById('appContainer').style.display = 'none'; 
-}
+<!-- TAREAS -->
+<div id="page-tareas" class="page">
+<div class="ph"><div class="ph-row"><div><h2>Tareas del Hogar 🏠</h2></div><button class="btn btn-p btn-sm" onclick="openMod('newTaskMod')">+ Nueva</button></div></div>
+<div class="card"><table class="tbl"><thead><tr><th>Tarea</th><th>Horario</th><th></th></tr></thead><tbody id="tareasBody"></tbody></table></div>
+</div>
 
-function showApp() {
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('appContainer').style.display = 'block';
-  document.getElementById('userName').textContent = currentUser.nombre;
-  const rolEl = document.getElementById('userRol');
-  rolEl.textContent = currentUser.rol === 'padre' ? 'Padre' : 'Hija';
-  rolEl.className = 'rol ' + currentUser.rol;
-  
-  if (currentUser.rol === 'padre') {
-    document.body.classList.add('padre-mode');
-    if (document.getElementById('btnPanelPadres')) document.getElementById('btnPanelPadres').classList.remove('hidden');
-    cargarPanelPadres();
-  } else {
-    document.body.classList.remove('padre-mode');
-    const panel = document.getElementById('padresPanel');
-    const btn = document.getElementById('btnPanelPadres');
-    if (panel) panel.remove();
-    if (btn) btn.remove();
-  }
-  cargarDatosHoy();
-}
+<!-- CONFIG -->
+<div id="page-config" class="page">
+<div class="ph"><h2>Configuración ⚙️</h2></div>
+<div class="card mb4"><div class="card-title">🔑 API Key de Gemini</div>
+<p class="sm muted mb4" style="line-height:1.6">Necesaria para generar quizzes y procesar documentos con IA.<br><a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--coral);font-weight:600">→ Obtener gratis en Google AI Studio</a></p>
+<div class="flex gap2" style="flex-wrap:wrap"><input type="password" class="fi" id="apiKeyInput" placeholder="AIzaSy..." style="flex:1;min-width:200px"><button class="btn btn-p" onclick="saveKey()">Guardar</button></div>
+<div class="mt3"><span id="keySt" style="font-size:12px;font-weight:700">Sin configurar</span></div>
+</div>
+<div class="card"><div class="card-title">ℹ️ Información</div><p class="sm muted">Mi Plan de Estudio · 6° SA Santa Úrsula de Maipú<br>Powered by Google Gemini AI</p></div>
+</div>
 
-function showToast(msg, type = 'info') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = msg;
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
+</div></div>
 
-async function doLogin(email, password) {
-  try {
-    const res = await fetch(API + '/api/auth/login', { 
-      method: 'POST', 
-      headers: {'Content-Type':'application/json'}, 
-      body: JSON.stringify({email, password}) 
-    });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    authToken = data.token; 
-    localStorage.setItem('token', authToken);
-    currentUser = data.user; 
-    showApp();
-    showToast(`¡Bienvenid@ ${currentUser.nombre}!`, 'success');
-  } catch (e) { 
-    document.getElementById('loginError').style.display = 'block'; 
-  }
-}
+<!-- KID APP -->
+<div id="kidApp" class="hidden">
+<div class="kid-shell"><div style="flex:1;overflow-y:auto">
+<div class="kid-header">
+<div class="kid-header-top"><div><div class="kid-greeting">¡Hola! 👋</div><div class="kid-sub">¿Lista para aprender?</div></div><div class="kid-pts">⭐ <span id="kidPts">0</span> pts</div></div>
+</div>
+<div class="kid-content kid-page on" id="kidP-home">
+<div class="kid-card"><div class="kid-card-title">🏠 Tareas de hoy</div><div id="kidTasks"></div></div>
+<div class="kid-card"><div class="kid-card-title">📅 Próxima evaluación</div><div id="kidEval"></div></div>
+<div style="height:20px"></div>
+</div>
+<div class="kid-page" id="kidP-study">
+<div class="kid-card"><div class="kid-card-title">📚 Materiales</div><div id="kidStudyList"></div></div>
+<div id="kidResArea" class="hidden"></div>
+</div>
+<div class="kid-page" id="kidP-quiz">
+<div class="kid-card"><div class="kid-card-title">✏️ Quiz</div><p class="sm muted">Selecciona un material en la sección Estudiar para hacer un Quiz con IA.</p></div>
+</div>
+<div class="kid-page" id="kidP-logros">
+<div class="kid-card"><div class="kid-card-title">⭐ Mis Logros</div><div id="kidLogros" style="display:grid;grid-template-columns:1fr 1fr;gap:9px"></div></div>
+</div>
+<div style="height:70px"></div>
+</div>
+<div class="kid-nav">
+<div class="kni on" onclick="kidNav('home',this)"><div class="kni-ic">🏠</div><div class="kni-lb">Inicio</div></div>
+<div class="kni" onclick="kidNav('study',this);loadKidStudy()"><div class="kni-ic">📚</div><div class="kni-lb">Estudiar</div></div>
+<div class="kni" onclick="kidNav('quiz',this)"><div class="kni-ic">✏️</div><div class="kni-lb">Quiz</div></div>
+<div class="kni" onclick="kidNav('logros',this);loadKidLogros()"><div class="kni-ic">⭐</div><div class="kni-lb">Logros</div></div>
+<div class="kni" onclick="doLogout()"><div class="kni-ic">🚪</div><div class="kni-lb">Salir</div></div>
+</div>
+</div></div>
 
-function doLogout() { 
-  localStorage.removeItem('token'); 
-  authToken = null; 
-  showLogin(); 
-}
+<!-- MODALS -->
+<div class="ov" id="newTaskMod"><div class="modal"><div class="modal-hd"><h3>Nueva Tarea</h3><button class="modal-x" onclick="closeMod('newTaskMod')">✕</button></div>
+<div class="fg"><label class="fl">Nombre</label><input class="fi" id="ntName"></div>
+<div class="g2"><div class="fg"><label class="fl">Emoji</label><input class="fi" id="ntEmoji" value="🏠"></div><div class="fg"><label class="fl">Horario</label><input class="fi" id="ntHora" placeholder="ej: 18:00"></div></div>
+<div class="fg"><label style="font-size:12px;display:flex;align-items:center;gap:6px"><input type="checkbox" id="ntFoto"> ¿Requiere foto?</label></div>
+<div class="flex gap2 mt3"><button class="btn btn-o wf" onclick="closeMod('newTaskMod')">Cancelar</button><button class="btn btn-p wf" onclick="agregarTarea()">Añadir ✓</button></div>
+</div></div>
 
-// NAVEGACIÓN Y CARGA DE PANTALLAS
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-  document.querySelectorAll('.bottom-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('nav-' + name).classList.add('active');
-  
-  if (name === 'hoy') cargarDatosHoy();
-  if (name === 'pruebas') cargarPruebas();
-  if (name === 'estudiar') cargarMaterias();
-  if (name === 'logros') cargarLogros();
-}
-
-// CARGA DE DATOS - HOY
-async function cargarDatosHoy() {
-  try {
-    // 1. Próxima Prueba
-    const resEval = await fetch(API + '/api/evaluaciones', { headers: authHeaders() });
-    const pruebas = await resEval.json();
-    if (Array.isArray(pruebas) && pruebas.length) {
-      const p = pruebas[0];
-      const dias = Math.ceil((new Date(p.fecha) - new Date()) / (1000 * 60 * 60 * 24));
-      document.getElementById('alerta-prueba').innerHTML = `<h3>Próxima: ${p.asignatura}</h3><p>${p.fecha} (en ${dias} días)<br>${p.titulo}</p><button class="btn-primary" onclick="showScreen('pruebas')">EMPEZAR REPASO 📖</button>`;
-    } else {
-      document.getElementById('alerta-prueba').innerHTML = `<h3>¡Todo al día! 🎉</h3><p>No tienes pruebas próximas registradas.</p>`;
-    }
-
-    // 2. Clases Hoy
-    const resPlan = await fetch(API + '/api/plan/hoy', { headers: authHeaders() });
-    const clases = await resPlan.json();
-    document.getElementById('clases-hoy').innerHTML = Array.isArray(clases) && clases.length ? 
-      clases.map(c => `<div class="clase-item" style="background:${getColorAsignatura(c.asignatura)}20">
-        <div class="clase-icon" style="background:${getColorAsignatura(c.asignatura)}">${getEmojiAsignatura(c.asignatura)}</div>
-        <div class="clase-info"><h4>${c.asignatura}</h4><p>${c.hora_inicio} - ${c.hora_fin}</p></div>
-      </div>`).join('') : '<p style="color:#999; text-align:center">Sin clases para hoy.</p>';
-
-    // 3. Tareas Hogar
-    const resTareas = await fetch(API + '/api/tareas/hoy', { headers: authHeaders() });
-    const tareas = await resTareas.json();
-    document.getElementById('tareas-hogar').innerHTML = Array.isArray(tareas) && tareas.length ? 
-      tareas.map(t => {
-        let btnHtml = '';
-        if (currentUser.rol === 'hijo') {
-          if (t.completada) {
-            btnHtml = `<button class="tarea-btn tarea-btn-undo" onclick="toggleTarea(${t.id})">↩️ Deshacer</button>`;
-          } else if (t.requiere_foto) {
-            btnHtml = `<label class="tarea-btn tarea-btn-foto" style="cursor:pointer; display:inline-block; text-align:center">📸 Foto<input type="file" accept="image/*" class="hidden" onchange="subirFoto(${t.id}, this)"></label>`;
-          } else {
-            btnHtml = `<button class="tarea-btn tarea-btn-hecho" onclick="completarTarea(${t.id})">✅ Hecho</button>`;
-          }
-        } else {
-          if (t.completada && !t.aprobada && t.foto_path) {
-            btnHtml = `<div style="display:flex; gap:5px"><button class="tarea-btn tarea-btn-hecho" onclick="aprobarTareaPadre(${t.id}, '${new Date().toISOString().split('T')[0]}', 1)" style="padding:5px 10px">✅</button><button class="tarea-btn tarea-btn-undo" onclick="aprobarTareaPadre(${t.id}, '${new Date().toISOString().split('T')[0]}', 0)" style="padding:5px 10px">❌</button></div>`;
-          } else if (t.aprobada) {
-            btnHtml = '<span style="color:#27ae60; font-size:0.8rem; font-weight:700">✅ Aprobada</span>';
-          } else if (t.completada) {
-             btnHtml = '<span style="color:#27ae60; font-size:0.8rem; font-weight:700">✅ Hecho</span>';
-          } else {
-            btnHtml = '<span style="color:#999; font-size:0.8rem">Pendiente</span>';
-          }
-        }
-
-        return `<div class="tarea-item ${t.completada?'completada':''}" id="tarea-${t.id}">
-          <div class="tarea-icon">${t.emoji || '🏠'}</div>
-          <div style="flex:1"><h4>${t.titulo}</h4><p style="font-size:0.75rem; color:#777">${t.horario}</p>
-          ${t.foto_path && !t.aprobada ? '<div style="font-size:0.7rem; color:#f39c12; margin-top:2px">⏳ Esperando aprobación</div>' : ''}
-          ${t.aprobada ? '<div style="font-size:0.7rem; color:#27ae60; margin-top:2px">✅ Aprobado</div>' : ''}
-          </div>
-          ${btnHtml}
-        </div>`;
-      }).join('') : '<p style="color:#999; text-align:center">Sin tareas asignadas.</p>';
-
-    // 4. Estrellitas
-    const resEst = await fetch(API + '/api/estrellitas', { headers: authHeaders() });
-    const estrellitas = await resEst.json();
-    actualizarEstrellitas(estrellitas);
-
-  } catch (e) { console.error("Error cargando pantalla Hoy:", e); }
-}
-
-// CARGA DE PRUEBAS (PANTALLA 2)
-async function cargarPruebas() {
-  try {
-    const res = await fetch(API + '/api/evaluaciones', { headers: authHeaders() });
-    const data = await res.json();
-    document.getElementById('lista-pruebas').innerHTML = data.map(p => `
-      <div class="clase-item" style="border-left: 4px solid ${getColorAsignatura(p.asignatura)}">
-        <div class="clase-icon" style="background:${getColorAsignatura(p.asignatura)}">${getEmojiAsignatura(p.asignatura)}</div>
-        <div class="clase-info"><h4>${p.asignatura}</h4><p>${p.fecha} - ${p.titulo}</p></div>
-      </div>
-    `).join('') || '<p style="text-align:center; padding:20px">No hay pruebas agendadas.</p>';
-  } catch(e) { console.error(e); }
-}
-
-// CARGA DE LOGROS (PANTALLA 4)
-async function cargarLogros() {
-  try {
-    const res = await fetch(API + '/api/estrellitas', { headers: authHeaders() });
-    const data = await res.json();
-    document.getElementById('logros-grid').innerHTML = data.map(e => `
-      <div class="stat-box">
-        <div style="font-size:2rem">${getEmojiAsignatura(e.asignatura)}</div>
-        <div class="stat-number">★ ${e.total}</div>
-        <div style="font-size:0.7rem">${e.asignatura}</div>
-      </div>
-    `).join('');
-  } catch(e) { console.error(e); }
-}
-
-// CARGA DE MATERIAS Y RESÚMENES (PANTALLA 3)
-let materialesList = [];
-let currentQuiz = [];
-let currentQuestion = 0;
-let correctAnswers = 0;
-let currentSubject = '';
-
-async function cargarMaterias() {
-  try {
-    const res = await fetch(API + '/api/materiales', { headers: authHeaders() });
-    if(res.ok) {
-      materialesList = await res.json();
-      
-      document.getElementById('lista-materias').innerHTML = materialesList.length ? materialesList.map(m => `
-        <div class="clase-item" onclick="showResumen(${m.id})" style="background:${getColorAsignatura(m.asignatura)}20; display:flex; align-items:center; cursor:pointer;">
-          <div class="clase-icon" style="background:${getColorAsignatura(m.asignatura)}">${getEmojiAsignatura(m.asignatura)}</div>
-          <div class="clase-info"><h4>${m.asignatura}</h4><p>${m.titulo}</p></div>
-        </div>
-      `).join('') : '<p style="text-align:center; padding:20px; color:#999">Papá o Mamá aún no han subido materiales de estudio.</p>';
-    }
-  } catch(e) { showToast('Error al cargar materiales', 'error'); }
-}
-
-function showResumen(id) {
-  const material = materialesList.find(m => m.id === id);
-  if(!material) return;
-  const html = `
-    <div class="card">
-      <div style="display:flex; align-items:center; margin-bottom:16px">
-        <div class="clase-icon" style="background: ${getColorAsignatura(material.asignatura)}; margin-right:12px">${getEmojiAsignatura(material.asignatura)}</div>
-        <div><h3 style="font-size:1.1rem">${material.asignatura}</h3><p style="font-size:0.8rem; color:var(--text2)">${material.titulo}</p></div>
-      </div>
-      <div style="border-left: 4px solid ${getColorAsignatura(material.asignatura)}; padding-left:12px; background:#f9f9f9; padding:12px; border-radius:0 12px 12px 0">
-        <h4 style="color:${getColorAsignatura(material.asignatura)}">📋 RESUMEN IA</h4>
-        <div style="font-size:0.9rem; white-space:pre-line">${material.resumen || 'No hay resumen disponible.'}</div>
-      </div>
-      <button class="btn-primary" style="background:${getColorAsignatura(material.asignatura)}; color:white" onclick="startQuiz(${material.id})">🎮 HACER QUIZ</button>
-      <button class="btn-primary" style="background:#eee; color:#333; margin-top:8px" onclick="document.getElementById('resumen-container').classList.add('hidden'); document.getElementById('selector-materias').classList.remove('hidden')">⬅️ Volver</button>
-    </div>`;
-
-  document.getElementById('selector-materias').classList.add('hidden');
-  const container = document.getElementById('resumen-container');
-  container.innerHTML = html; 
-  container.classList.remove('hidden');
-  document.getElementById('quiz-container').classList.add('hidden');
-}
-
-async function startQuiz(id) {
-  const material = materialesList.find(m => m.id === id);
-  if (!material) return;
-  currentSubject = material.asignatura;
-  
-  document.getElementById('resumen-container').innerHTML = `
-    <div class="card" style="text-align:center; padding: 40px 20px;">
-      <div style="font-size:3rem; margin-bottom:20px; animation: pulse 1.5s infinite">🧠</div>
-      <h3>Generando Quiz con IA...</h3>
-      <p style="color:#777">Preparando preguntas sobre ${material.titulo}</p>
-    </div>
-    <style>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }</style>
-  `;
-  
-  try {
-    const res = await fetch(API + '/api/quiz/generar', {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ texto: material.resumen || material.titulo })
-    });
-    const data = await res.json();
-    if (data.quiz && data.quiz.length > 0) {
-      currentQuiz = data.quiz;
-      currentQuestion = 0; correctAnswers = 0;
-      document.getElementById('resumen-container').classList.add('hidden');
-      document.getElementById('quiz-container').classList.remove('hidden');
-      showQuestion();
-    } else {
-      showToast('Error al generar el quiz', 'error');
-      showResumen(id);
-    }
-  } catch (e) {
-    showToast('Error de conexión', 'error');
-    showResumen(id);
-  }
-}
-
-function showQuestion() {
-  const q = currentQuiz[currentQuestion];
-  const html = `
-    <div style="margin-bottom:12px; font-size:0.8rem; color:#999; text-align:center">Pregunta ${currentQuestion + 1} de ${currentQuiz.length}</div>
-    <h3 style="margin-bottom:16px">${q.q}</h3>
-    <div style="display:flex; flex-direction:column; gap:8px">
-      ${q.options.map((opt, i) => `<button class="login-input" style="text-align:left; cursor:pointer" onclick="checkAnswer(${i}, this)">${opt}</button>`).join('')}
-    </div>
-    <div id="explanation-box" class="hidden" style="margin-top:16px; padding:16px; background:#f0f0f0; border-radius:12px; font-size:0.9rem">
-      <div id="explanation-text"></div>
-      <button class="btn-primary" style="background:#667eea; color:white" onclick="nextQuestion()">${currentQuestion < currentQuiz.length - 1 ? 'SIGUIENTE ➡️' : 'VER RESULTADO 🏆'}</button>
-    </div>`;
-  document.getElementById('quiz-content').innerHTML = html;
-}
-
-function checkAnswer(selected, btn) {
-  const q = currentQuiz[currentQuestion];
-  const buttons = btn.parentElement.children;
-  Array.from(buttons).forEach((b, i) => { 
-    b.disabled = true; 
-    if (i === q.correct) { b.style.background = '#e8f8e8'; b.style.borderColor = '#27ae60'; }
-  });
-  
-  const explBox = document.getElementById('explanation-box');
-  const explText = document.getElementById('explanation-text');
-  
-  if (selected === q.correct) {
-    correctAnswers++; 
-    btn.style.background = '#e8f8e8'; 
-    explText.innerHTML = `<div style="color:#27ae60; font-weight:bold; margin-bottom:5px">✅ ¡CORRECTO!</div>${q.explanation || ''}`;
-  } else {
-    btn.style.background = '#ffe8e8'; btn.style.borderColor = '#e74c3c';
-    explText.innerHTML = `<div style="color:#e74c3c; font-weight:bold; margin-bottom:5px">❌ Casi...</div>La respuesta era: <b>${q.options[q.correct]}</b><br>${q.explanation || ''}`;
-  }
-  explBox.classList.remove('hidden');
-}
-
-function nextQuestion() {
-  currentQuestion++;
-  if (currentQuestion < currentQuiz.length) showQuestion(); else showResult();
-}
-
-async function showResult() {
-  const pct = (correctAnswers / currentQuiz.length) * 100;
-  let msg = '', emoji = '⭐';
-  if (pct === 100) { msg = '¡PERFECTO!'; emoji = '🌟🌟🌟'; } else if (pct >= 50) { msg = '¡Muy bien!'; emoji = '⭐⭐'; }
-  
-  const html = `
-    <div style="text-align:center">
-      <div style="font-size:4rem">${emoji}</div>
-      <h2>${correctAnswers}/${currentQuiz.length} correctas</h2>
-      <p style="color:#777; margin-bottom:15px">${msg}</p>
-      <div style="color:#27ae60; font-weight:bold; margin-bottom:20px">🎉 ¡Estrellitas ganadas para ${currentSubject}!</div>
-      <button class="btn-primary" onclick="document.getElementById('quiz-container').classList.add('hidden'); document.getElementById('selector-materias').classList.remove('hidden')">⬅️ VOLVER</button>
-    </div>`;
-  document.getElementById('quiz-content').innerHTML = html;
-  
-  if (currentUser.rol === 'hijo') {
-    try { await fetch(API + '/api/quiz/resultado', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ asignatura: currentSubject, correctas: correctAnswers, total: currentQuiz.length }) }); } catch(e){}
-    cargarDatosHoy();
-  }
-}
-
-
-// FUNCIONES AUXILIARES
-function getEmojiAsignatura(a) {
-  const map = { matematica: '🔢', lenguaje: '📖', ciencias: '🧪', historia: '🏛️', ingles: '🇬🇧', aleman: '🇩🇪', hogar: '🏠' };
-  return map[a?.toLowerCase()] || '📚';
-}
-function getColorAsignatura(a) {
-  const map = { matematica: '#FFD93D', lenguaje: '#4D96FF', ciencias: '#6BCB77', historia: '#AA7C55', ingles: '#FF6B6B', aleman: '#9B59B6', hogar: '#FF6B9D' };
-  return map[a?.toLowerCase()] || '#95A5A6';
-}
-function actualizarEstrellitas(data) {
-  const list = Array.isArray(data) ? data : [];
-  const grid = document.getElementById('estrellitas-grid');
-  grid.innerHTML = list.map(e => `<span title="${e.asignatura}">${getEmojiAsignatura(e.asignatura)} ★${e.total}</span>`).join(' ');
-  const total = list.reduce((a, b) => a + b.total, 0);
-  document.getElementById('meta-texto').textContent = `🎯 Meta: ${total}/20 estrellitas = 🍕 Pizza`;
-}
-
-// ACCIONES DE HIJA
-async function completarTarea(id) {
-  try {
-    await fetch(API + '/api/tareas/completar', { 
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({tarea_id: id, completada: 1}) 
-    });
-    cargarDatosHoy();
-  } catch (e) { console.error(e); }
-}
-
-async function toggleTarea(id) {
-  try {
-    await fetch(API + '/api/tareas/completar', { 
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({tarea_id: id, completada: 0}) 
-    });
-    cargarDatosHoy();
-  } catch(e) {}
-}
-
-async function subirFoto(id, input) {
-  const file = input.files[0]; if (!file) return;
-  const formData = new FormData();
-  formData.append('foto', file); formData.append('tarea_id', id); formData.append('completada', 1);
-  try {
-    await fetch(API + '/api/tareas/completar', { method: 'POST', headers: {'Authorization':'Bearer ' + authToken}, body: formData });
-    showToast('📸 Foto enviada a papá/mamá para revisión', 'success');
-    cargarDatosHoy();
-  } catch (e) { showToast('Error al subir foto', 'error'); }
-}
-
-// ACCIONES DE PADRES
-function togglePadresPanel() { document.getElementById('padresPanel').classList.toggle('active'); }
-
-async function cargarPanelPadres() {
-  try {
-    const res = await fetch(API + '/api/padres/dashboard', { headers: authHeaders() });
-    const data = await res.json();
-    const total = data.estrellitas.reduce((a,b)=>a+b.total,0);
-    document.getElementById('padres-stats').innerHTML = `
-      <div class="stats-grid">
-        <div class="stat-box"><div class="stat-number">${data.quizzes_semana || 0}</div><div style="font-size:0.7rem">Quizzes Semana</div></div>
-        <div class="stat-box"><div class="stat-number">${total}</div><div style="font-size:0.7rem">Estrellas Totales</div></div>
-      </div>`;
-    
-    const pendientes = data.evidencias ? data.evidencias.filter(e => !e.aprobada) : [];
-    document.getElementById('padres-evidencias').innerHTML = pendientes.length ? pendientes.map(e => `
-      <div style="display:flex; align-items:center; padding:10px; background:white; border-radius:10px; margin-bottom:8px">
-        <div style="font-size:1.5rem; margin-right:10px">📸</div>
-        <div style="flex:1"><div style="font-weight:bold">Tarea #${e.tarea_id}</div><div style="font-size:0.7rem">${e.fecha}</div></div>
-        <button class="tarea-btn tarea-btn-hecho" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 1)" style="margin-right:5px">✅</button>
-        <button class="tarea-btn tarea-btn-undo" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 0)">❌</button>
-      </div>`).join('') : '<p style="color:#999; font-size:0.8rem">No hay evidencias pendientes.</p>';
-
-    const btnPadres = document.getElementById('btnPanelPadres');
-    if (btnPadres) {
-      if (pendientes.length > 0) {
-        btnPadres.innerHTML = `⚙️ Panel Control <span style="background:red; color:white; border-radius:50%; padding:2px 6px; font-size:0.7rem; margin-left:4px">${pendientes.length}</span>`;
-      } else {
-        btnPadres.innerHTML = `⚙️ Panel Control`;
-      }
-    }
-      
-    cargarConfigTareas();
-    cargarUsuariosFamilia();
-  } catch(e) { console.error(e); }
-}
-
-async function cargarUsuariosFamilia() {
-  try {
-    const res = await fetch(API + '/api/usuarios', { headers: authHeaders() });
-    const usuarios = await res.json();
-    document.getElementById('lista-usuarios-familia').innerHTML = usuarios.map(u => `
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px; background:white; border-radius:8px; margin-bottom:4px">
-        <div>
-          <strong>${u.nombre}</strong> <span style="font-size:0.7rem; color:#777; text-transform:uppercase; background:#eee; padding:2px 6px; border-radius:10px">${u.rol}</span>
-          <div style="font-size:0.75rem; color:#777">${u.email}</div>
-        </div>
-      </div>
-    `).join('');
-  } catch(e) { document.getElementById('lista-usuarios-familia').innerHTML = 'Error al cargar familia'; }
-}
-
-async function aprobarTareaPadre(tareaId, fecha, aprobada) {
-  try {
-    await fetch(API + '/api/tareas/aprobar', {
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({ tarea_id: tareaId, fecha, aprobada })
-    });
-    cargarDatosHoy(); cargarPanelPadres();
-  } catch(e) { showToast('Error al aprobar', 'error'); }
-}
-
-async function cargarConfigTareas() {
-  try {
-    const tareas = await fetch(API + '/api/tareas/config', { headers: authHeaders() }).then(r => r.json());
-    document.getElementById('lista-tareas-config').innerHTML = tareas.map(t => `
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px; background:white; border-radius:8px; margin-bottom:4px; font-size:0.85rem">
-        <span>${t.emoji} ${t.titulo} (${t.horario})</span>
-        <button onclick="borrarTareaHogar(${t.id})" style="background:none; border:none; color:#FF6B6B; cursor:pointer">🗑️</button>
-      </div>`).join('');
-  } catch(e){}
-}
-
-async function agregarTareaHogar() {
-  const data = {
-    titulo: document.getElementById('new-tarea-titulo').value,
-    emoji: document.getElementById('new-tarea-emoji').value,
-    horario: document.getElementById('new-tarea-hora').value,
-    requiere_foto: document.getElementById('new-tarea-foto').checked
-  };
-  if(!data.titulo) return showToast('Ponle un nombre', 'error');
-  await fetch(API + '/api/tareas/config', { method: 'POST', headers: authHeaders(), body: JSON.stringify(data) });
-  document.getElementById('new-tarea-titulo').value = '';
-  cargarConfigTareas(); cargarDatosHoy();
-}
-
-async function borrarTareaHogar(id) {
-  if(!confirm('¿Borrar?')) return;
-  await fetch(API + '/api/tareas/config/' + id, { method: 'DELETE', headers: authHeaders() });
-  cargarConfigTareas(); cargarDatosHoy();
-}
-
-function mostrarNombreArchivo() {
-  const file = document.getElementById('uploadFile').files[0];
-  if(file) document.getElementById('nombre-archivo').textContent = '📄 ' + file.name;
-}
-
-async function subirMaterial() {
-  const file = document.getElementById('uploadFile').files[0];
-  const asignatura = document.getElementById('uploadAsignatura').value;
-  if(!file) return showToast('Selecciona un archivo', 'error');
-  
-  document.getElementById('upload-text').classList.add('hidden');
-  document.getElementById('upload-loading').classList.remove('hidden');
-  
-  const formData = new FormData();
-  formData.append('material', file); formData.append('asignatura', asignatura); formData.append('titulo', file.name);
-  
-  try {
-    await fetch(API + '/api/materiales/subir', { method: 'POST', headers: {'Authorization':'Bearer ' + authToken}, body: formData });
-    document.getElementById('upload-text').classList.remove('hidden');
-    document.getElementById('upload-loading').classList.add('hidden');
-    showToast('✅ Resumen generado exitosamente', 'success');
-    document.getElementById('uploadFile').value = ''; document.getElementById('nombre-archivo').textContent = '';
-  } catch(e) {
-    document.getElementById('upload-text').classList.remove('hidden');
-    document.getElementById('upload-loading').classList.add('hidden');
-    showToast('Error al subir material', 'error');
-  }
-}
-
-async function subirPlan() {
-  const file = document.getElementById('filePlan').files[0];
-  const inicio = document.getElementById('semana_inicio').value;
-  if(!file || !inicio) return showToast('Selecciona archivo y fecha', 'error');
-  const formData = new FormData();
-  formData.append('plan', file); formData.append('semana_inicio', inicio);
-  try {
-    await fetch(API + '/api/plan/subir', { 
-      method: 'POST', 
-      headers: {'Authorization':'Bearer ' + authToken}, 
-      body: formData 
-    });
-    showToast('✅ Plan cargado correctamente', 'success'); 
-    cargarDatosHoy();
-  } catch(e) { showToast('Error al subir plan', 'error'); }
-}
-
-async function subirCronograma() {
-  const file = document.getElementById('fileCronograma').files[0];
-  if(!file) return showToast('Selecciona el PDF', 'error');
-  const formData = new FormData();
-  formData.append('archivo', file);
-  try {
-    await fetch(API + '/api/evaluaciones/subir', { 
-      method: 'POST', 
-      headers: {'Authorization':'Bearer ' + authToken}, 
-      body: formData 
-    });
-    showToast('✅ Cronograma procesado', 'success'); 
-    cargarDatosHoy();
-  } catch(e) { showToast('Error al subir cronograma', 'error'); }
-}
-
-// INICIALIZACIÓN
-checkAuth();
-</script>
+<script>document.getElementById('dashDate').textContent=new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})</script>
+<script src="app.js"></script>
 </body>
 </html>

@@ -15,6 +15,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'mi-plan-estudio-secret-key-2026';
+let geminiApiKey = process.env.GEMINI_API_KEY || '';
 const UPLOADS_DIR = process.env.RENDER ? './uploads' : 'uploads';
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -284,7 +285,8 @@ app.post('/api/plan/subir', authMiddleware, requirePadre, upload.single('plan'),
         Devuelve ÚNICAMENTE un array JSON válido con esos campos.
         Texto: ${texto}`;
 
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        if (!geminiApiKey) return res.status(400).json({ error: 'API Key de Gemini no configurada. Ve a Configuración.' });
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -316,7 +318,8 @@ app.post('/api/evaluaciones/subir', authMiddleware, requirePadre, upload.single(
         Responde ÚNICAMENTE con un array JSON de objetos.
         Texto: ${texto}`;
 
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        if (!geminiApiKey) return res.status(400).json({ error: 'API Key de Gemini no configurada. Ve a Configuración.' });
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -521,7 +524,8 @@ app.post('/api/quiz/generar', authMiddleware, async (req, res) => {
         [{"q": "Pregunta", "options": ["Opcion 1", "Opcion 2", "Opcion 3"], "correct": 0, "explanation": "Por qué es correcta"}]
         Texto: ${texto}`;
 
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        if (!geminiApiKey) return res.status(400).json({ error: 'API Key de Gemini no configurada' });
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -610,6 +614,19 @@ cron.schedule('0 7 * * *', async () => {
     } catch (err) {
         console.error("Error en cron job:", err);
     }
+});
+
+// Health check para Render
+// ===== CONFIG API KEY =====
+app.post('/api/config/apikey', authMiddleware, requirePadre, (req, res) => {
+    const { apiKey } = req.body;
+    if (!apiKey) return res.status(400).json({ error: 'API Key requerida' });
+    geminiApiKey = apiKey;
+    res.json({ success: true, message: 'API Key configurada' });
+});
+
+app.get('/api/config/apikey/status', authMiddleware, (req, res) => {
+    res.json({ configured: !!geminiApiKey });
 });
 
 // Health check para Render
