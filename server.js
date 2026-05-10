@@ -10,6 +10,7 @@ const mammoth = require('mammoth');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -400,6 +401,15 @@ app.get('/api/materiales/:asignatura', authMiddleware, async (req, res) => {
     }
 });
 
+app.get('/api/materiales', authMiddleware, async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT id, asignatura, titulo, resumen, created_at FROM materiales ORDER BY created_at DESC`);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 // ===== API ROUTES - TAREAS DEL HOGAR =====
 app.get('/api/tareas/hoy', authMiddleware, async (req, res) => {
@@ -503,6 +513,28 @@ app.post('/api/quiz/resultado', authMiddleware, requireHijo, async (req, res) =>
     }
 });
 
+app.post('/api/quiz/generar', authMiddleware, async (req, res) => {
+    const { texto } = req.body;
+    try {
+        const prompt = `Genera un quiz de 3 preguntas de opción múltiple basándote en este texto. 
+        Debes devolver ÚNICAMENTE un array JSON válido con este formato exacto:
+        [{"q": "Pregunta", "options": ["Opcion 1", "Opcion 2", "Opcion 3"], "correct": 0, "explanation": "Por qué es correcta"}]
+        Texto: ${texto}`;
+
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let jsonStr = response.text().replace(/\`\`\`json|\`\`\`/g, '').trim();
+        const quiz = JSON.parse(jsonStr);
+        
+        res.json({ success: true, quiz });
+    } catch (err) {
+        console.error("Error generando quiz:", err);
+        res.status(500).json({ error: 'Error generando quiz: ' + err.message });
+    }
+});
+
 
 app.get('/api/estrellitas', authMiddleware, async (req, res) => {
     const hijoId = req.user.rol === 'hijo' ? req.user.id : req.query.hijo_id || 1;
@@ -553,6 +585,15 @@ app.get('/api/padres/dashboard', authMiddleware, requirePadre, async (req, res) 
             quizzes_semana: parseInt(data.quizzes_semana),
             tareas_semana: parseInt(data.tareas_semana)
         });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/usuarios', authMiddleware, requirePadre, async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT id, nombre, email, rol, activo, created_at FROM usuarios ORDER BY id`);
+        res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

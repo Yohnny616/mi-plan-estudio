@@ -74,19 +74,28 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
 .bottom-btn .icon { font-size: 1.5rem; display: block; margin-bottom: 2px; }
 
 .hidden { display: none !important; }
+#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+.toast { padding: 12px 24px; border-radius: 30px; color: white; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); animation: slideDown 0.3s ease; pointer-events: all; }
+.toast.success { background: #27ae60; }
+.toast.error { background: #e74c3c; }
+.toast.info { background: #3498db; }
+@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.padre-mode .header { background: linear-gradient(135deg, #FF9F45 0%, #D35400 100%); }
+.padre-mode .bottom-nav .bottom-btn.active { color: #D35400; }
 </style>
 </head>
 <body>
+
+<div id="toast-container"></div>
 
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-emoji">🏫</div>
     <div class="login-title">Mi Plan de Estudio</div>
     <div class="login-sub">Acceso Seguro para la Familia</div>
-    <div class="login-error" id="loginError">❌ Credenciales incorrectas</div>
-    <input type="email" class="login-input" id="loginEmail" placeholder="📧 Correo" value="hija@familia.cl">
-    <input type="password" class="login-input" id="loginPassword" placeholder="🔒 Contraseña" value="hija2026">
-    <button class="login-btn" onclick="doLogin()">Entrar al Panel 🚀</button>
+    <div class="login-error" id="loginError">❌ Error al iniciar sesión</div>
+    <button class="login-btn" style="background:#27ae60; margin-bottom:12px" onclick="doLogin('hija@familia.cl', 'hija2026')">👧 Soy Hija</button>
+    <button class="login-btn" style="background:#FF9F45" onclick="doLogin('padres@familia.cl', 'padre2026')">👨‍👩‍👧 Soy Papá / Mamá</button>
   </div>
 </div>
 
@@ -106,6 +115,11 @@ body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--te
 
   <div class="padres-panel" id="padresPanel">
     <h3 style="margin-bottom:15px">🛠️ Herramientas de Padres</h3>
+    
+    <div class="card" style="border-left: 5px solid #9B59B6">
+      <div class="card-title">👥 GESTIÓN DE FAMILIA</div>
+      <div id="lista-usuarios-familia" style="margin-bottom: 12px; font-size: 0.85rem;">Cargando...</div>
+    </div>
     
     <div class="card" style="border-left: 5px solid #FF9F45">
       <div class="card-title">🏠 GESTIONAR TAREAS DEL HOGAR</div>
@@ -227,15 +241,33 @@ function showApp() {
   rolEl.className = 'rol ' + currentUser.rol;
   
   if (currentUser.rol === 'padre') {
-    document.getElementById('btnPanelPadres').classList.remove('hidden');
+    document.body.classList.add('padre-mode');
+    if (document.getElementById('btnPanelPadres')) document.getElementById('btnPanelPadres').classList.remove('hidden');
     cargarPanelPadres();
+  } else {
+    document.body.classList.remove('padre-mode');
+    const panel = document.getElementById('padresPanel');
+    const btn = document.getElementById('btnPanelPadres');
+    if (panel) panel.remove();
+    if (btn) btn.remove();
   }
   cargarDatosHoy();
 }
 
-async function doLogin() {
-  const email = document.getElementById('loginEmail').value;
-  const password = document.getElementById('loginPassword').value;
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+async function doLogin(email, password) {
   try {
     const res = await fetch(API + '/api/auth/login', { 
       method: 'POST', 
@@ -248,6 +280,7 @@ async function doLogin() {
     localStorage.setItem('token', authToken);
     currentUser = data.user; 
     showApp();
+    showToast(`¡Bienvenid@ ${currentUser.nombre}!`, 'success');
   } catch (e) { 
     document.getElementById('loginError').style.display = 'block'; 
   }
@@ -369,7 +402,7 @@ async function cargarLogros() {
 }
 
 // CARGA DE MATERIAS Y RESÚMENES (PANTALLA 3)
-let resumenes = {};
+let materialesList = [];
 let currentQuiz = [];
 let currentQuestion = 0;
 let correctAnswers = 0;
@@ -379,35 +412,32 @@ async function cargarMaterias() {
   try {
     const res = await fetch(API + '/api/materiales', { headers: authHeaders() });
     if(res.ok) {
-      const data = await res.json();
-      resumenes = {};
-      data.forEach(m => { resumenes[m.asignatura] = m.contenido; });
+      materialesList = await res.json();
       
-      const materias = Object.keys(resumenes);
-      document.getElementById('lista-materias').innerHTML = materias.length ? materias.map(m => `
-        <div class="clase-item" onclick="showResumen('${m}')" style="background:${getColorAsignatura(m)}20">
-          <div class="clase-icon" style="background:${getColorAsignatura(m)}">${getEmojiAsignatura(m)}</div>
-          <div class="clase-info"><h4>${m}</h4><p>Ver resumen y Quiz</p></div>
+      document.getElementById('lista-materias').innerHTML = materialesList.length ? materialesList.map(m => `
+        <div class="clase-item" onclick="showResumen(${m.id})" style="background:${getColorAsignatura(m.asignatura)}20; display:flex; align-items:center; cursor:pointer;">
+          <div class="clase-icon" style="background:${getColorAsignatura(m.asignatura)}">${getEmojiAsignatura(m.asignatura)}</div>
+          <div class="clase-info"><h4>${m.asignatura}</h4><p>${m.titulo}</p></div>
         </div>
       `).join('') : '<p style="text-align:center; padding:20px; color:#999">Papá o Mamá aún no han subido materiales de estudio.</p>';
     }
-  } catch(e) { console.error(e); }
+  } catch(e) { showToast('Error al cargar materiales', 'error'); }
 }
 
-function showResumen(subject) {
-  const r = resumenes[subject];
-  if(!r) return;
+function showResumen(id) {
+  const material = materialesList.find(m => m.id === id);
+  if(!material) return;
   const html = `
     <div class="card">
       <div style="display:flex; align-items:center; margin-bottom:16px">
-        <div class="clase-icon" style="background: ${getColorAsignatura(subject)}; margin-right:12px">${getEmojiAsignatura(subject)}</div>
-        <div><h3 style="font-size:1.1rem">${subject}</h3><p style="font-size:0.8rem; color:var(--text2)">Material de Estudio</p></div>
+        <div class="clase-icon" style="background: ${getColorAsignatura(material.asignatura)}; margin-right:12px">${getEmojiAsignatura(material.asignatura)}</div>
+        <div><h3 style="font-size:1.1rem">${material.asignatura}</h3><p style="font-size:0.8rem; color:var(--text2)">${material.titulo}</p></div>
       </div>
-      <div style="border-left: 4px solid ${getColorAsignatura(subject)}; padding-left:12px; background:#f9f9f9; padding:12px; border-radius:0 12px 12px 0">
-        <h4 style="color:${getColorAsignatura(subject)}">📋 RESUMEN</h4>
-        <div style="font-size:0.9rem; white-space:pre-line">${r.resumen || r}</div>
+      <div style="border-left: 4px solid ${getColorAsignatura(material.asignatura)}; padding-left:12px; background:#f9f9f9; padding:12px; border-radius:0 12px 12px 0">
+        <h4 style="color:${getColorAsignatura(material.asignatura)}">📋 RESUMEN IA</h4>
+        <div style="font-size:0.9rem; white-space:pre-line">${material.resumen || 'No hay resumen disponible.'}</div>
       </div>
-      <button class="btn-primary" style="background:${getColorAsignatura(subject)}; color:white" onclick="startQuiz('${subject}')">🎮 HACER QUIZ</button>
+      <button class="btn-primary" style="background:${getColorAsignatura(material.asignatura)}; color:white" onclick="startQuiz(${material.id})">🎮 HACER QUIZ</button>
       <button class="btn-primary" style="background:#eee; color:#333; margin-top:8px" onclick="document.getElementById('resumen-container').classList.add('hidden'); document.getElementById('selector-materias').classList.remove('hidden')">⬅️ Volver</button>
     </div>`;
 
@@ -418,20 +448,41 @@ function showResumen(subject) {
   document.getElementById('quiz-container').classList.add('hidden');
 }
 
-function startQuiz(subject) {
-  currentQuiz = [
-    {q: "¿Has comprendido el material principal de " + subject + "?", options: ["Sí", "No", "Más o menos"], correct: 0, explanation: "¡Excelente! La IA generará quizzes dinámicos pronto."},
-    {q: "¿Te sientes preparado para la evaluación?", options: ["Sí", "Aún debo repasar"], correct: 0, explanation: "Confía en ti mismo."}
-  ]; // Placeholder for actual AI generated quizzes
+async function startQuiz(id) {
+  const material = materialesList.find(m => m.id === id);
+  if (!material) return;
+  currentSubject = material.asignatura;
   
-  if(resumenes[subject] && resumenes[subject].quiz) {
-      currentQuiz = resumenes[subject].quiz;
+  document.getElementById('resumen-container').innerHTML = `
+    <div class="card" style="text-align:center; padding: 40px 20px;">
+      <div style="font-size:3rem; margin-bottom:20px; animation: pulse 1.5s infinite">🧠</div>
+      <h3>Generando Quiz con IA...</h3>
+      <p style="color:#777">Preparando preguntas sobre ${material.titulo}</p>
+    </div>
+    <style>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }</style>
+  `;
+  
+  try {
+    const res = await fetch(API + '/api/quiz/generar', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ texto: material.resumen || material.titulo })
+    });
+    const data = await res.json();
+    if (data.quiz && data.quiz.length > 0) {
+      currentQuiz = data.quiz;
+      currentQuestion = 0; correctAnswers = 0;
+      document.getElementById('resumen-container').classList.add('hidden');
+      document.getElementById('quiz-container').classList.remove('hidden');
+      showQuestion();
+    } else {
+      showToast('Error al generar el quiz', 'error');
+      showResumen(id);
+    }
+  } catch (e) {
+    showToast('Error de conexión', 'error');
+    showResumen(id);
   }
-
-  currentQuestion = 0; correctAnswers = 0; currentSubject = subject;
-  document.getElementById('resumen-container').classList.add('hidden');
-  document.getElementById('quiz-container').classList.remove('hidden');
-  showQuestion();
 }
 
 function showQuestion() {
@@ -540,9 +591,9 @@ async function subirFoto(id, input) {
   formData.append('foto', file); formData.append('tarea_id', id); formData.append('completada', 1);
   try {
     await fetch(API + '/api/tareas/completar', { method: 'POST', headers: {'Authorization':'Bearer ' + authToken}, body: formData });
-    alert('📸 Foto enviada a papá/mamá para revisión');
+    showToast('📸 Foto enviada a papá/mamá para revisión', 'success');
     cargarDatosHoy();
-  } catch (e) { alert('Error al subir foto'); }
+  } catch (e) { showToast('Error al subir foto', 'error'); }
 }
 
 // ACCIONES DE PADRES
@@ -567,9 +618,34 @@ async function cargarPanelPadres() {
         <button class="tarea-btn tarea-btn-hecho" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 1)" style="margin-right:5px">✅</button>
         <button class="tarea-btn tarea-btn-undo" onclick="aprobarTareaPadre(${e.tarea_id}, '${e.fecha}', 0)">❌</button>
       </div>`).join('') : '<p style="color:#999; font-size:0.8rem">No hay evidencias pendientes.</p>';
+
+    const btnPadres = document.getElementById('btnPanelPadres');
+    if (btnPadres) {
+      if (pendientes.length > 0) {
+        btnPadres.innerHTML = `⚙️ Panel Control <span style="background:red; color:white; border-radius:50%; padding:2px 6px; font-size:0.7rem; margin-left:4px">${pendientes.length}</span>`;
+      } else {
+        btnPadres.innerHTML = `⚙️ Panel Control`;
+      }
+    }
       
     cargarConfigTareas();
+    cargarUsuariosFamilia();
   } catch(e) { console.error(e); }
+}
+
+async function cargarUsuariosFamilia() {
+  try {
+    const res = await fetch(API + '/api/usuarios', { headers: authHeaders() });
+    const usuarios = await res.json();
+    document.getElementById('lista-usuarios-familia').innerHTML = usuarios.map(u => `
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:8px; background:white; border-radius:8px; margin-bottom:4px">
+        <div>
+          <strong>${u.nombre}</strong> <span style="font-size:0.7rem; color:#777; text-transform:uppercase; background:#eee; padding:2px 6px; border-radius:10px">${u.rol}</span>
+          <div style="font-size:0.75rem; color:#777">${u.email}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { document.getElementById('lista-usuarios-familia').innerHTML = 'Error al cargar familia'; }
 }
 
 async function aprobarTareaPadre(tareaId, fecha, aprobada) {
@@ -578,7 +654,7 @@ async function aprobarTareaPadre(tareaId, fecha, aprobada) {
       method: 'POST', headers: authHeaders(), body: JSON.stringify({ tarea_id: tareaId, fecha, aprobada })
     });
     cargarDatosHoy(); cargarPanelPadres();
-  } catch(e) { alert('Error'); }
+  } catch(e) { showToast('Error al aprobar', 'error'); }
 }
 
 async function cargarConfigTareas() {
@@ -599,7 +675,7 @@ async function agregarTareaHogar() {
     horario: document.getElementById('new-tarea-hora').value,
     requiere_foto: document.getElementById('new-tarea-foto').checked
   };
-  if(!data.titulo) return alert('Ponle un nombre');
+  if(!data.titulo) return showToast('Ponle un nombre', 'error');
   await fetch(API + '/api/tareas/config', { method: 'POST', headers: authHeaders(), body: JSON.stringify(data) });
   document.getElementById('new-tarea-titulo').value = '';
   cargarConfigTareas(); cargarDatosHoy();
@@ -619,7 +695,7 @@ function mostrarNombreArchivo() {
 async function subirMaterial() {
   const file = document.getElementById('uploadFile').files[0];
   const asignatura = document.getElementById('uploadAsignatura').value;
-  if(!file) return alert('Selecciona un archivo');
+  if(!file) return showToast('Selecciona un archivo', 'error');
   
   document.getElementById('upload-text').classList.add('hidden');
   document.getElementById('upload-loading').classList.remove('hidden');
@@ -631,19 +707,19 @@ async function subirMaterial() {
     await fetch(API + '/api/materiales/subir', { method: 'POST', headers: {'Authorization':'Bearer ' + authToken}, body: formData });
     document.getElementById('upload-text').classList.remove('hidden');
     document.getElementById('upload-loading').classList.add('hidden');
-    alert('✅ Resumen generado exitosamente');
+    showToast('✅ Resumen generado exitosamente', 'success');
     document.getElementById('uploadFile').value = ''; document.getElementById('nombre-archivo').textContent = '';
   } catch(e) {
     document.getElementById('upload-text').classList.remove('hidden');
     document.getElementById('upload-loading').classList.add('hidden');
-    alert('Error al subir material');
+    showToast('Error al subir material', 'error');
   }
 }
 
 async function subirPlan() {
   const file = document.getElementById('filePlan').files[0];
   const inicio = document.getElementById('semana_inicio').value;
-  if(!file || !inicio) return alert('Selecciona archivo y fecha');
+  if(!file || !inicio) return showToast('Selecciona archivo y fecha', 'error');
   const formData = new FormData();
   formData.append('plan', file); formData.append('semana_inicio', inicio);
   try {
@@ -652,14 +728,14 @@ async function subirPlan() {
       headers: {'Authorization':'Bearer ' + authToken}, 
       body: formData 
     });
-    alert('✅ Plan cargado correctamente'); 
+    showToast('✅ Plan cargado correctamente', 'success'); 
     cargarDatosHoy();
-  } catch(e) { alert('Error al subir plan'); }
+  } catch(e) { showToast('Error al subir plan', 'error'); }
 }
 
 async function subirCronograma() {
   const file = document.getElementById('fileCronograma').files[0];
-  if(!file) return alert('Selecciona el PDF');
+  if(!file) return showToast('Selecciona el PDF', 'error');
   const formData = new FormData();
   formData.append('archivo', file);
   try {
@@ -668,9 +744,9 @@ async function subirCronograma() {
       headers: {'Authorization':'Bearer ' + authToken}, 
       body: formData 
     });
-    alert('✅ Cronograma procesado'); 
+    showToast('✅ Cronograma procesado', 'success'); 
     cargarDatosHoy();
-  } catch(e) { alert('Error al subir cronograma'); }
+  } catch(e) { showToast('Error al subir cronograma', 'error'); }
 }
 
 // INICIALIZACIÓN
